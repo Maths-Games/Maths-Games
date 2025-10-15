@@ -1,9 +1,9 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geopardy - Select Topics</title>
+    <title>Geopardy - The Team Maths Challenge</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Lucide Icons for aesthetic appeal -->
@@ -43,6 +43,9 @@
             color: #6b7280;
             text-decoration: line-through;
         }
+        /* Team specific styles for indicator (must be safe-listed for Tailwind JIT) */
+        .team-red { border-color: theme('colors.red.500'); }
+        .team-blue { border-color: theme('colors.blue.500'); }
     </style>
     <!-- Firebase Imports for Data Persistence -->
     <script type="module">
@@ -138,11 +141,32 @@
         
         <!-- 2. Geopardy Game Board (Hidden until game starts) -->
         <div id="gameBoardScreen" class="hidden">
-            <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
-                <h2 class="text-2xl font-bold text-gray-800">Geopardy Challenge</h2>
-                <div class="text-xl font-semibold text-gray-700">
-                    Score: <span id="currentScore" class="text-blue-600">0</span>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg border-l-8 team-red" id="gameHeader">
+                <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                    <h2 class="text-2xl font-bold text-gray-800">Team Scores</h2>
+                    <button onclick="openScoreControlModal()" class="py-2 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-150 shadow-md flex items-center">
+                        <i data-lucide="plus-circle" class="w-5 h-5 mr-1"></i>
+                        Score Control
+                    </button>
                 </div>
+                
+                <div class="flex space-x-6 items-center w-full sm:w-auto">
+                    <!-- Red Team Score -->
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-red-600 uppercase">Red Team</p>
+                        <p id="redTeamScore" class="text-3xl font-extrabold text-gray-900">0</p>
+                    </div>
+                    <!-- Blue Team Score -->
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-blue-600 uppercase">Blue Team</p>
+                        <p id="blueTeamScore" class="text-3xl font-extrabold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Active Team and Player Indicator -->
+            <div id="activeTeamIndicator" class="text-center py-3 mb-4 rounded-xl border-2 border-dashed border-gray-300 bg-white shadow-inner">
+                <!-- Content set by JS -->
             </div>
             
             <!-- Game Board Grid -->
@@ -152,32 +176,72 @@
         </div>
     </main>
 
-    <!-- Question/Status Modal (Used for both initial success and questions) -->
+    <!-- QUESTION/STATUS Modal (For playing the game) -->
     <div id="statusModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full text-center relative">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full text-center relative transition-all duration-300">
             <h3 id="modalTitle" class="text-2xl font-bold mb-4 text-blue-700"></h3>
-            <p id="modalQuestion" class="text-xl text-gray-800 mb-6"></p>
+            <p id="modalPlayer" class="text-lg font-semibold text-gray-600 mb-2"></p>
             <p id="modalPoints" class="text-lg font-semibold text-green-600 mb-4"></p>
+            
+            <p id="modalQuestion" class="text-xl text-gray-800 mb-6"></p>
             
             <div id="questionContent">
                 <textarea id="userAnswer" rows="2" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 mb-4 text-lg" placeholder="Type your answer here..."></textarea>
                 <div class="flex justify-end space-x-3">
-                    <button onclick="checkAnswer()" id="checkAnswerButton" class="py-2 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 shadow-md">
-                        Submit Answer
+                    <button onclick="checkAnswer(true)" id="checkAnswerButton" class="py-2 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 shadow-md">
+                        Correct Answer (+$)
                     </button>
-                    <button onclick="showAnswer()" id="showAnswerButton" class="py-2 px-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
-                        Give Up (Show Answer)
+                    <button onclick="checkAnswer(false)" id="showAnswerButton" class="py-2 px-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                        Incorrect Answer (-$)
                     </button>
                 </div>
             </div>
             
             <div id="answerContent" class="hidden mt-4 p-4 bg-gray-100 rounded-lg border-l-4 border-l-green-500">
-                <p class="font-bold text-gray-700 mb-2">Correct Answer:</p>
+                <p class="font-bold text-gray-700 mb-2">The answer was:</p>
                 <p id="modalAnswer" class="text-2xl text-green-700 font-extrabold"></p>
                 <button onclick="closeQuestion(true)" class="mt-6 py-2 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md">
                     Continue to Board
                 </button>
             </div>
+        </div>
+    </div>
+    
+    <!-- SCORE CONTROL Modal (Manual adjustment) -->
+    <div id="scoreControlModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full relative">
+            <h3 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Teacher Score Control</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                    <label for="controlTeam" class="text-lg font-medium text-gray-700 w-1/3">Team:</label>
+                    <select id="controlTeam" class="w-2/3 p-2 border-2 border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500">
+                        <option value="Red">Red Team</option>
+                        <option value="Blue">Blue Team</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <label for="controlPoints" class="text-lg font-medium text-gray-700 w-1/3">Points:</label>
+                    <input type="number" id="controlPoints" value="100" min="1" class="w-2/3 p-2 border-2 border-gray-300 rounded-lg text-center font-bold focus:ring-yellow-500 focus:border-yellow-500">
+                </div>
+                
+                <div class="flex justify-between pt-4">
+                    <button onclick="adjustScore('add')" class="w-[48%] py-3 px-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md font-bold flex items-center justify-center">
+                        <i data-lucide="chevrons-up" class="w-5 h-5 mr-1"></i>
+                        ADD
+                    </button>
+                    <button onclick="adjustScore('subtract')" class="w-[48%] py-3 px-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 shadow-md font-bold flex items-center justify-center">
+                        <i data-lucide="chevrons-down" class="w-5 h-5 mr-1"></i>
+                        SUBTRACT
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="closeScoreControlModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">
+                 <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <p id="scoreControlMessage" class="text-sm mt-4 text-center text-green-700 font-medium hidden"></p>
         </div>
     </div>
 
@@ -190,7 +254,24 @@
     </footer>
 
     <script>
-        // --- 1. GAME DATA (Questions and Topics) ---
+        // --- 1. GAME DATA (Teams, Questions and Topics) ---
+
+        // Team Roster from Seating Chart
+        const teamsData = {
+            Red: {
+                members: ['Leen', 'Talia', 'Aparajita', 'Sofia', 'Taha', 'Moh Ib', 'Abdallah', 'Fatemah', 'Lara', 'Cyrine', 'Ojas', 'Mosaab', 'Moh El', 'Adam'],
+                score: 0,
+                color: 'red-600',
+                activePlayer: ''
+            },
+            Blue: {
+                members: ['Karma', 'Zeyad', 'Ashirya', 'Retaj', 'Hussein', 'Movses', 'Yousef', 'Andrew', 'Ignacio', 'Aziz', 'Aala', 'Jorge'],
+                score: 0,
+                color: 'blue-600',
+                activePlayer: ''
+            }
+        };
+        let activeTeamName = 'Red'; // Start with the Red team
 
         // Difficulty tiers: Q1=100pts (Easy), Q5=500pts (Hard)
         const pointValues = [100, 200, 300, 400, 500];
@@ -225,9 +306,7 @@
 
         /**
          * Generates a random question and answer based on the subtopic and point value.
-         * @param {string} subtopic - The title of the subtopic.
-         * @param {number} points - The point value (difficulty level).
-         * @returns {{question: string, answer: string}}
+         * (Same logic as before, ensuring random, age-appropriate maths problems)
          */
         function generateQuestion(subtopic, points) {
             let q = "";
@@ -553,7 +632,6 @@
         }
 
         // Combined topic and question data structure
-        // The 'questions' array is now empty/minimal and will be populated by generateQuestion at runtime.
         const allTopicsData = [
             {
                 name: "Topic 1: Numbers",
@@ -615,18 +693,27 @@
         const startButton = document.getElementById('startButton');
         const selectionError = document.getElementById('selectionError');
         const geopardyGrid = document.getElementById('geopardyGrid');
-        const currentScoreElement = document.getElementById('currentScore');
-        const modal = document.getElementById('statusModal');
+        
+        // References for the Question Modal
+        const statusModal = document.getElementById('statusModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalQuestion = document.getElementById('modalQuestion');
+        const modalPlayer = document.getElementById('modalPlayer');
         const modalPoints = document.getElementById('modalPoints');
         const modalAnswer = document.getElementById('modalAnswer');
         const userAnswerInput = document.getElementById('userAnswer');
         const questionContent = document.getElementById('questionContent');
         const answerContent = document.getElementById('answerContent');
+        
+        // References for Score Control Modal
+        const scoreControlModal = document.getElementById('scoreControlModal');
+        const controlTeamSelect = document.getElementById('controlTeam');
+        const controlPointsInput = document.getElementById('controlPoints');
+        const scoreControlMessage = document.getElementById('scoreControlMessage');
+        const gameHeader = document.getElementById('gameHeader');
+
 
         let gameState = {
-            score: 0,
             selectedTopics: [],
             currentQuestion: null,
             currentCellId: null,
@@ -634,7 +721,53 @@
         };
         
         
-        // --- 3. TOPIC SELECTION LOGIC ---
+        // --- 3. TEAM AND SCORE LOGIC ---
+
+        /**
+         * Selects a random player from the current active team and updates the state.
+         */
+        function selectRandomPlayer(teamName) {
+            const team = teamsData[teamName];
+            if (team.members.length === 0) return 'The team is empty!';
+            const randomIndex = randInt(0, team.members.length - 1);
+            team.activePlayer = team.members[randomIndex];
+            return team.activePlayer;
+        }
+
+        /**
+         * Updates the team scores and active team indicator on the main board.
+         */
+        function updateScoreDisplay() {
+            document.getElementById('redTeamScore').textContent = teamsData.Red.score;
+            document.getElementById('blueTeamScore').textContent = teamsData.Blue.score;
+
+            const activeTeam = teamsData[activeTeamName];
+            const activeTeamIndicator = document.getElementById('activeTeamIndicator');
+            
+            // Update indicator and color of the main header border
+            gameHeader.classList.remove('team-red', 'team-blue');
+            gameHeader.classList.add(`team-${activeTeamName.toLowerCase()}`);
+
+            activeTeamIndicator.innerHTML = `
+                <span class="text-xl font-bold text-${activeTeam.color}">
+                    ${activeTeamName} Team's Turn
+                </span>
+                <span class="ml-3 text-lg font-medium text-gray-700">
+                    Player: <span class="text-${activeTeam.color} font-extrabold">${activeTeam.activePlayer}</span>
+                </span>
+            `;
+            // Re-run lucide icons for the indicator
+            lucide.createIcons();
+        }
+        
+        /**
+         * Switches the active team.
+         */
+        function switchTeam() {
+            activeTeamName = activeTeamName === 'Red' ? 'Blue' : 'Red';
+        }
+
+        // --- 4. TOPIC SELECTION & GAME START ---
 
         /**
          * Renders the topic selection interface dynamically.
@@ -702,7 +835,6 @@
             }
 
             // 1. Prepare Game State
-            gameState.score = 0;
             gameState.selectedTopics = selectedTopicTitles;
             gameState.questions = {};
 
@@ -715,6 +847,10 @@
                 });
                 gameState.questions[title] = questionsForTopic;
             });
+            
+            // Initialize first player and score display
+            selectRandomPlayer(activeTeamName);
+            updateScoreDisplay();
 
             // 2. Render Board
             renderGameBoard();
@@ -722,10 +858,9 @@
             // 3. Switch Views
             selectionScreen.classList.add('hidden');
             gameBoardScreen.classList.remove('hidden');
-            currentScoreElement.textContent = '0';
         }
 
-        // --- 4. GAME BOARD AND QUESTION LOGIC ---
+        // --- 5. GAME BOARD AND QUESTION LOGIC ---
 
         /**
          * Renders the Geopardy board based on the selected topics.
@@ -768,9 +903,6 @@
 
         /**
          * Opens the question modal for the selected cell.
-         * @param {string} topicTitle - The title of the selected sub-topic.
-         * @param {number} questionIndex - The index (0-4) of the question difficulty.
-         * @param {string} cellId - The ID of the cell element.
          */
         function openQuestion(topicTitle, questionIndex, cellId) {
             const questionData = gameState.questions[topicTitle][questionIndex];
@@ -786,6 +918,7 @@
             
             // Set modal content
             modalTitle.textContent = topicTitle;
+            modalPlayer.textContent = `Player: ${teamsData[activeTeamName].activePlayer} (${activeTeamName} Team)`;
             modalPoints.textContent = `For $${questionData.points}`;
             modalQuestion.innerHTML = questionData.question; // Use innerHTML to render math LaTeX
             userAnswerInput.value = '';
@@ -795,80 +928,48 @@
             answerContent.classList.add('hidden');
             
             // Display modal
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            statusModal.classList.remove('hidden');
+            statusModal.classList.add('flex');
             
             // Re-render icons/math in modal (Placeholder for true LaTeX rendering)
             lucide.createIcons(); 
         }
 
         /**
-         * Shows the correct answer and disables the question submission.
+         * Processes the answer and updates the score.
+         * @param {boolean} isCorrect - True if the judge/teacher marks the answer correct.
          */
-        function showAnswer() {
-            // Reset modal border color
-            modal.querySelector('.bg-white').classList.remove('border-green-500', 'border-red-500');
+        function checkAnswer(isCorrect) {
+            const points = gameState.currentQuestion.points;
+            
+            if (isCorrect) {
+                teamsData[activeTeamName].score += points;
+                modalTitle.textContent = `Correct! +$${points} for ${activeTeamName} Team!`;
+                modalAnswer.innerHTML = 'You earned the points!';
+                statusModal.querySelector('.bg-white').classList.add('border-4', 'border-green-500');
+            } else {
+                teamsData[activeTeamName].score -= points; // Deduct points for incorrect answers
+                modalTitle.textContent = `Incorrect! -$${points} from ${activeTeamName} Team.`;
+                modalAnswer.innerHTML = 'Better luck next time.';
+                statusModal.querySelector('.bg-white').classList.add('border-4', 'border-red-500');
+            }
 
-            modalTitle.textContent = 'Correct Answer';
-            modalAnswer.innerHTML = gameState.currentQuestion.answer;
+            // Show the correct answer to the class
+            modalAnswer.innerHTML += `<br><span class="text-xl font-normal text-gray-700">Answer: ${gameState.currentQuestion.answer}</span>`;
+            
+            // Update UI sections
             questionContent.classList.add('hidden');
             answerContent.classList.remove('hidden');
-            
-            // Note: score is only updated if they get it right, which is handled in checkAnswer.
-        }
-
-        /**
-         * Checks the user's answer against the correct answer.
-         */
-        function checkAnswer() {
-            // Clean input by removing non-numeric characters (except period and minus) and LaTeX symbols
-            const userAnswer = userAnswerInput.value.trim().toLowerCase().replace(/\\/g, '').replace(/[\s\$\{\}]/g, '');
-            const correctAnswer = gameState.currentQuestion.answer.trim().toLowerCase().replace(/\\/g, '').replace(/[\s\$\{\}]/g, '');
-
-            let isCorrect = false;
-            
-            // 1. Simple text comparison (for word answers like units, descriptions)
-            if (userAnswer === correctAnswer) {
-                isCorrect = true;
-            } else {
-                // 2. Numeric comparison (more lenient for math answers)
-                const userNum = parseFloat(userAnswer);
-                const correctNum = parseFloat(correctAnswer);
-                if (!isNaN(userNum) && !isNaN(correctNum) && userNum.toFixed(3) === correctNum.toFixed(3)) {
-                    isCorrect = true;
-                }
-            }
-            
-            // Update score and display result
-            if (isCorrect) {
-                gameState.score += gameState.currentQuestion.points;
-                modalTitle.textContent = `Correct! +$${gameState.currentQuestion.points}`;
-                modalAnswer.innerHTML = 'You earned the points!';
-            } else {
-                modalTitle.textContent = `Incorrect!`;
-                modalAnswer.innerHTML = 'Better luck next time.';
-            }
-
-            currentScoreElement.textContent = gameState.score;
-            
-            // Show the correct answer after checking
-            showAnswer();
-            
-            // Highlight modal based on correctness
-            if (isCorrect) {
-                modal.querySelector('.bg-white').classList.add('border-4', 'border-green-500');
-            } else {
-                modal.querySelector('.bg-white').classList.add('border-4', 'border-red-500');
-            }
+            updateScoreDisplay(); 
         }
 
         /**
          * Closes the modal and updates the game board cell.
          */
         function closeQuestion(markAsPlayed = true) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            modal.querySelector('.bg-white').classList.remove('border-4', 'border-green-500', 'border-red-500');
+            statusModal.classList.add('hidden');
+            statusModal.classList.remove('flex');
+            statusModal.querySelector('.bg-white').classList.remove('border-4', 'border-green-500', 'border-red-500');
 
 
             if (markAsPlayed && gameState.currentCellId) {
@@ -894,9 +995,60 @@
             // Reset current question tracking
             gameState.currentQuestion = null;
             gameState.currentCellId = null;
+            
+            // The team that controls the board changes to the other team for the next pick.
+            switchTeam();
+            // Select the next player for the new active team
+            selectRandomPlayer(activeTeamName);
+            updateScoreDisplay();
+        }
+        
+        // --- 6. MANUAL SCORE CONTROL LOGIC ---
+
+        function openScoreControlModal() {
+            // Pre-select the current active team for convenience
+            controlTeamSelect.value = activeTeamName;
+            controlPointsInput.value = 100;
+            scoreControlMessage.classList.add('hidden');
+            scoreControlModal.classList.remove('hidden');
+            scoreControlModal.classList.add('flex');
+            lucide.createIcons();
         }
 
-        // --- 5. INITIALIZATION ---
+        function closeScoreControlModal() {
+            scoreControlModal.classList.add('hidden');
+            scoreControlModal.classList.remove('flex');
+        }
+
+        function adjustScore(operation) {
+            const teamName = controlTeamSelect.value;
+            const points = parseInt(controlPointsInput.value);
+
+            if (isNaN(points) || points <= 0) {
+                scoreControlMessage.textContent = 'Please enter a valid positive score.';
+                scoreControlMessage.classList.remove('hidden', 'text-green-700');
+                scoreControlMessage.classList.add('text-red-500');
+                return;
+            }
+
+            if (operation === 'add') {
+                teamsData[teamName].score += points;
+                scoreControlMessage.textContent = `+$${points} added to ${teamName} Team's score!`;
+            } else if (operation === 'subtract') {
+                teamsData[teamName].score -= points;
+                scoreControlMessage.textContent = `-$${points} subtracted from ${teamName} Team's score.`;
+            }
+
+            // Show confirmation message
+            scoreControlMessage.classList.remove('hidden', 'text-red-500');
+            scoreControlMessage.classList.add('text-green-700');
+            
+            // Update the main game board score display
+            updateScoreDisplay();
+        }
+
+
+        // --- 7. INITIALIZATION ---
 
         window.onload = () => {
             renderTopics();
@@ -908,11 +1060,11 @@
         window.checkSelection = checkSelection;
         window.openQuestion = openQuestion;
         window.checkAnswer = checkAnswer;
-        window.showAnswer = showAnswer;
         window.closeQuestion = closeQuestion;
-        // Expose helper functions for question generation logic in the console
-        window.randInt = randInt;
-        window.generateQuestion = generateQuestion;
+        window.openScoreControlModal = openScoreControlModal;
+        window.closeScoreControlModal = closeScoreControlModal;
+        window.adjustScore = adjustScore;
+        
     </script>
 </body>
 </html>
