@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,6 +19,29 @@
         }
         .topic-item:hover {
             background-color: theme('colors.blue.50');
+        }
+
+        /* Geopardy Board Styling */
+        .geopardy-cell {
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .geopardy-cell:not(.disabled):hover {
+            background-color: #3b82f6 !important; /* Blue-500 on hover */
+            transform: scale(1.02);
+        }
+        .geopardy-cell.disabled {
+            background-color: #1f2937 !important; /* Darker gray for used cell */
+            cursor: not-allowed;
+            color: #6b7280;
+            text-decoration: line-through;
         }
     </style>
     <!-- Firebase Imports for Data Persistence -->
@@ -78,49 +101,86 @@
                 Back to Game Hub
             </a>
             <h1 class="text-3xl font-extrabold text-white tracking-tight">
-                Geopardy: Topic Select
+                Geopardy: The Maths Challenge
             </h1>
         </div>
     </header>
 
-    <!-- Main Content Area: Topic Selection -->
-    <main class="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
-        <div class="bg-white p-8 rounded-xl shadow-2xl">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Choose Your Challenge Topics</h2>
-            <p class="text-gray-600 mb-8">
-                Select one or more topics to build your custom Geopardy game board.
-            </p>
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- 1. Topic Selection Screen (Initial View) -->
+        <div id="selectionScreen" class="max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-xl shadow-2xl">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Choose Your Challenge Topics</h2>
+                <p class="text-gray-600 mb-8">
+                    Select the **sub-topics** to build your custom Geopardy game board (5 questions per topic).
+                </p>
 
-            <form id="topicSelectionForm">
-                <!-- Topics will be dynamically inserted here -->
-                <div id="topicsContainer" class="space-y-6">
-                    <!-- Dynamic Content -->
-                </div>
+                <form id="topicSelectionForm">
+                    <!-- Topics will be dynamically inserted here -->
+                    <div id="topicsContainer" class="space-y-6">
+                        <!-- Dynamic Content -->
+                    </div>
 
-                <div class="mt-10 pt-6 border-t border-gray-200">
-                    <button type="button" onclick="startGame()" id="startButton" class="w-full py-3 px-6 border border-transparent rounded-lg shadow-xl text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500 transition duration-200 disabled:opacity-50" disabled>
-                        <i data-lucide="play" class="inline-block w-6 h-6 mr-2"></i>
-                        Start Geopardy Game
-                    </button>
-                    <p id="selectionError" class="text-red-500 text-center mt-3 hidden">
-                        Please select at least one sub-topic to start the game.
-                    </p>
+                    <div class="mt-10 pt-6 border-t border-gray-200">
+                        <button type="button" onclick="startGame()" id="startButton" class="w-full py-3 px-6 border border-transparent rounded-lg shadow-xl text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500 transition duration-200 disabled:opacity-50" disabled>
+                            <i data-lucide="play" class="inline-block w-6 h-6 mr-2"></i>
+                            Start Geopardy Game
+                        </button>
+                        <p id="selectionError" class="text-red-500 text-center mt-3 hidden">
+                            Please select at least one sub-topic to start the game.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 2. Geopardy Game Board (Hidden until game starts) -->
+        <div id="gameBoardScreen" class="hidden">
+            <div class="flex justify-between items-center mb-6 p-4 bg-white rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800">Geopardy Challenge</h2>
+                <div class="text-xl font-semibold text-gray-700">
+                    Score: <span id="currentScore" class="text-blue-600">0</span>
                 </div>
-            </form>
-
-            <!-- Game Status Modal (replacing alert()) -->
-            <div id="statusModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4">
-                <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full text-center">
-                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500 mx-auto mb-4"></i>
-                    <h3 class="text-xl font-bold mb-3">Game Starting!</h3>
-                    <p id="statusMessage" class="text-gray-700 mb-6"></p>
-                    <button onclick="document.getElementById('statusModal').classList.add('hidden')" class="py-2 px-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        Awesome!
-                    </button>
-                </div>
+            </div>
+            
+            <!-- Game Board Grid -->
+            <div id="geopardyGrid" class="grid gap-2 p-2 bg-indigo-900 rounded-xl shadow-2xl border-4 border-indigo-900">
+                <!-- Grid content will be generated by JavaScript -->
             </div>
         </div>
     </main>
+
+    <!-- Question/Status Modal (Used for both initial success and questions) -->
+    <div id="statusModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full text-center relative">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-4 text-blue-700"></h3>
+            <p id="modalQuestion" class="text-xl text-gray-800 mb-6"></p>
+            <p id="modalPoints" class="text-lg font-semibold text-green-600 mb-4"></p>
+            
+            <div id="questionContent">
+                <textarea id="userAnswer" rows="2" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 mb-4 text-lg" placeholder="Type your answer here..."></textarea>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="checkAnswer()" id="checkAnswerButton" class="py-2 px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-150 shadow-md">
+                        Submit Answer
+                    </button>
+                    <button onclick="showAnswer()" id="showAnswerButton" class="py-2 px-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150 shadow-md">
+                        Give Up (Show Answer)
+                    </button>
+                </div>
+            </div>
+            
+            <div id="answerContent" class="hidden mt-4 p-4 bg-gray-100 rounded-lg border-l-4 border-l-green-500">
+                <p class="font-bold text-gray-700 mb-2">Correct Answer:</p>
+                <p id="modalAnswer" class="text-2xl text-green-700 font-extrabold"></p>
+                <button onclick="closeQuestion(true)" class="mt-6 py-2 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md">
+                    Continue to Board
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Footer -->
     <footer class="bg-gray-800 mt-12">
@@ -130,59 +190,451 @@
     </footer>
 
     <script>
-        // Data structure for all available topics (based on your curriculum guide)
-        const allTopics = [
+        // --- 1. GAME DATA (Questions and Topics) ---
+
+        // Difficulty tiers: Q1=100pts (Easy), Q5=500pts (Hard)
+        const pointValues = [100, 200, 300, 400, 500];
+
+        // Helper function for random integer
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Helper function for prime factor decomposition
+        function getPrimeFactorDecomposition(n) {
+            const factors = {};
+            let d = 2;
+            let temp = n;
+            while (d * d <= temp) {
+                while (temp % d === 0) {
+                    factors[d] = (factors[d] || 0) + 1;
+                    temp /= d;
+                }
+                d += 1;
+            }
+            if (temp > 1) {
+                factors[temp] = (factors[temp] || 0) + 1;
+            }
+            let result = '';
+            for (const [base, exponent] of Object.entries(factors)) {
+                if (result.length > 0) result += ' \\times ';
+                result += exponent === 1 ? base : `${base}^{${exponent}}`;
+            }
+            return result;
+        }
+
+        /**
+         * Generates a random question and answer based on the subtopic and point value.
+         * @param {string} subtopic - The title of the subtopic.
+         * @param {number} points - The point value (difficulty level).
+         * @returns {{question: string, answer: string}}
+         */
+        function generateQuestion(subtopic, points) {
+            let q = "";
+            let a = "";
+
+            // Complexity scale based on points
+            const maxVal = Math.floor(points / 50) + 5; // e.g., 100pts -> max 7; 500pts -> max 15
+
+            switch (subtopic) {
+                case "Calculating with negative integers":
+                    let num1 = randInt(-maxVal, maxVal);
+                    let num2 = randInt(-maxVal, maxVal);
+                    let op = ['+', '-'][randInt(0, 1)];
+
+                    if (points <= 200) {
+                        // Simple addition/subtraction
+                        q = `Calculate $${num1} ${op} ${num2}$?`;
+                        a = op === '+' ? (num1 + num2).toString() : (num1 - num2).toString();
+                    } else if (points <= 400) {
+                        // Multiplication/Division
+                        num1 = randInt(-5, 5);
+                        num2 = randInt(2, 8);
+                        let product = num1 * num2;
+                        q = `Find the value of $${num1} \\times ${num2}$`;
+                        a = product.toString();
+                    } else {
+                        // Mixed operation (BODMAS with negatives)
+                        let num3 = randInt(1, 3);
+                        q = `Evaluate $${num1} ${op} ( ${num2} \\times ${num3} )$`;
+                        let result = op === '+' ? num1 + (num2 * num3) : num1 - (num2 * num3);
+                        a = result.toString();
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Prime factor decomposition":
+                    let number;
+                    if (points <= 200) number = randInt(12, 30);
+                    else if (points <= 400) number = randInt(35, 75);
+                    else number = randInt(80, 120);
+
+                    q = `Find the prime factor decomposition of $${number}$.`;
+                    a = getPrimeFactorDecomposition(number);
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Using indices":
+                    let base = randInt(2, 5);
+                    let exp1 = randInt(2, 6);
+                    let exp2 = randInt(1, 4);
+
+                    if (points <= 200) {
+                        // Product rule
+                        q = `Simplify $${base}^{${exp1}} \\times ${base}^{${exp2}}$ as a single power.`;
+                        a = `${base}^{${exp1 + exp2}}`;
+                    } else if (points <= 400) {
+                        // Quotient rule or power of zero/negative
+                        if (randInt(0, 1) === 0) {
+                            q = `Simplify $$\\frac{x^{${exp1 + exp2}}}{x^{${exp2}}}$$.`;
+                            a = `x^{${exp1}}`;
+                        } else {
+                            q = `Evaluate $${randInt(1, 10)}^0 + ${base}^{-1}$.`;
+                            a = `1 + \\frac{1}{${base}} = ${1 + 1/base}`;
+                        }
+                    } else {
+                        // Power rule with combined operations
+                        q = `Simplify $$(y^{${exp1}})^2 \\times y^{${exp2}}$$.`;
+                        a = `y^{${(exp1 * 2) + exp2}}`;
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Priority of operations (Order of Operations)":
+                    let a1 = randInt(1, 10), b1 = randInt(1, 5), c1 = randInt(1, 4), d1 = randInt(1, 3);
+
+                    if (points <= 200) {
+                        // Addition/Multiplication
+                        q = `Calculate $${a1} + ${b1} \\times ${c1}$`;
+                        a = (a1 + b1 * c1).toString();
+                    } else if (points <= 400) {
+                        // Brackets and exponents
+                        q = `Evaluate $${a1} \\times (${b1} + ${c1})^2 - ${d1}$`;
+                        a = (a1 * (b1 + c1)**2 - d1).toString();
+                    } else {
+                        // Division, brackets, and exponents
+                        let qNum = randInt(10, 30);
+                        let dNum = randInt(2, 5);
+                        let res = qNum / dNum;
+                        if (res === Math.floor(res)) {
+                           q = `Find the value of $$( ${qNum} \\div ${dNum} ) + [ ${c1} \\times (${d1} + ${b1}) ]$$`;
+                           a = (res + c1 * (d1 + b1)).toString();
+                        } else { // Fallback to simpler for integer answer
+                            q = `Evaluate $${a1} + [ ${b1} \\times (${c1} + ${d1}) ] \\div 2$`;
+                            a = (a1 + b1 * (c1 + d1) / 2).toString();
+                        }
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Solving one-step equations":
+                    let x = randInt(2, maxVal), c = randInt(5, maxVal + 10);
+                    let result = x * c;
+
+                    if (points <= 300) {
+                        // Addition/Subtraction
+                        let op2 = randInt(0, 1) === 0 ? '+' : '-';
+                        q = `Solve $x ${op2} ${x} = ${op2 === '+' ? (c + x) : (c - x)}$ for $x$.`;
+                        a = c.toString();
+                    } else {
+                        // Multiplication/Division
+                        q = `Solve $${x}y = ${result}$ for $y$.`;
+                        a = c.toString();
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+                
+                case "Solving two-step equations":
+                    let a2 = randInt(2, 5), b2 = randInt(1, 8), c2 = randInt(10, 40);
+                    let ans = (c2 - b2) / a2;
+                    // Ensure integer answer for simplicity
+                    while (ans !== Math.floor(ans)) {
+                        c2++; 
+                        ans = (c2 - b2) / a2;
+                    }
+                    q = `Solve $${a2}x + ${b2} = ${c2}$ for $x$.`;
+                    a = ans.toString();
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "More complex equations":
+                    let e1 = randInt(3, 8), e2 = randInt(1, 4), e3 = randInt(10, 25), e4 = randInt(1, 10);
+                    let finalAns = (e3 - e4) / (e1 - e2);
+                    // Ensure integer answer
+                    while (finalAns !== Math.floor(finalAns)) {
+                        e3++;
+                        finalAns = (e3 - e4) / (e1 - e2);
+                    }
+                    
+                    if (points <= 400) {
+                        // Expanding a bracket
+                        q = `Solve $2(x+${e2}) = ${e3}$ for $x$.`;
+                        a = (e3 / 2 - e2).toString();
+                    } else {
+                        // Variables on both sides
+                        q = `Solve $${e1}x + ${e4} = ${e2}x + ${e3}$ for $x$.`;
+                        a = finalAns.toString();
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Working with formulae":
+                    let r = randInt(2, 5), h = randInt(5, 12);
+                    let formula;
+
+                    if (points <= 200) {
+                        // Substitution - Area of a circle
+                        formula = 'Area of a circle: $A = \\pi r^2$';
+                        q = `Use the formula for the area of a circle. Find $A$ if $r = ${r}$. Leave your answer in terms of $\\pi$.`;
+                        a = `${r * r}\\pi`;
+                    } else if (points <= 400) {
+                         // Substitution - Volume of a cuboid
+                        formula = 'Volume of a cuboid: $V = lwh$';
+                        q = `Use the formula for the volume of a cuboid. Find $V$ if $l=4, w=5, h=${h}$.`;
+                        a = (4 * 5 * h).toString();
+                    } else {
+                        // Rearranging a simple formula
+                        q = `Make $x$ the subject of the formula $y = 3x - 5$.`;
+                        a = `x = \\frac{y + 5}{3}`;
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Simplifying expressions (collecting like terms)":
+                    let s1 = randInt(2, 8), s2 = randInt(1, 5), s3 = randInt(1, 7), s4 = randInt(1, 4);
+                    let xTerm = s1 - s3;
+                    let yTerm = s2 + s4;
+                    q = `Simplify $${s1}x + ${s2}y - ${s3}x + ${s4}y$.`;
+                    a = `${xTerm}x + ${yTerm}y`;
+                    return { question: q, answer: a };
+
+                case "More simplifying (multiplying brackets)":
+                    let m1 = randInt(2, 6), m2 = randInt(3, 9), m3 = randInt(2, 5);
+
+                    if (points <= 300) {
+                        q = `Expand $${m1}(3x + ${m2})$.`;
+                        a = `${m1 * 3}x + ${m1 * m2}`;
+                    } else {
+                        // Double bracket expansion (more complex)
+                        q = `Expand and simplify $(x + ${m2})(x + ${m3})$.`;
+                        a = `x^2 + ${m2 + m3}x + ${m2 * m3}`;
+                    }
+                    return { question: q, answer: a };
+                
+                case "Factorising expressions":
+                    let f1 = randInt(2, 5), f2 = randInt(4, 10);
+                    q = `Factorise the expression $${f1 * 3}x + ${f1 * f2}$.`;
+                    a = `${f1}(3x + ${f2})`;
+                    return { question: q, answer: a };
+
+                case "Expanding and factorising expressions":
+                    let expA = randInt(2, 4), expB = randInt(1, 3), expC = randInt(5, 10), expD = randInt(2, 5);
+                    let xCoeff = expA + expC;
+                    let constTerm = expA * expB + expC * expD;
+                    q = `Expand and simplify $${expA}(x + ${expB}) + ${expC}(x + ${expD})$.`;
+                    a = `${xCoeff}x + ${constTerm}`;
+                    return { question: q, answer: a };
+
+                case "Substituting and solving":
+                    let subX = randInt(1, 5), subY = randInt(2, 4);
+                    let subExp = `${randInt(2, 5)}x + ${randInt(1, 3)}y`;
+                    let finalVal = eval(subExp.replace('x', subX).replace('y', subY));
+                    
+                    if (points <= 300) {
+                        q = `If $x = ${subX}$ and $y = ${subY}$, evaluate $${subExp}$.`;
+                        a = finalVal.toString();
+                    } else {
+                         q = `If $x = 2$ and $y = 5$, find the value of $$\\frac{x^3 + y}{x}$$.`;
+                         a = '6.5'; // (8 + 5) / 2
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Area of triangles, parallelograms and trapezia":
+                    let baseA = randInt(5, 15), heightA = randInt(3, 10);
+                    let area, qType = randInt(0, 2);
+
+                    if (points <= 200) {
+                        // Triangle
+                        area = (baseA * heightA) / 2;
+                        q = `A triangle has base ${baseA} cm and height ${heightA} cm. What is its area?`;
+                        a = `${area} \\text{ cm}^2`;
+                    } else if (points <= 400) {
+                        // Parallelogram
+                        area = baseA * heightA;
+                        q = `A parallelogram has base ${baseA} m and perpendicular height ${heightA} m. What is its area?`;
+                        a = `${area} \\text{ m}^2`;
+                    } else {
+                        // Trapezium
+                        let baseB = randInt(6, 20);
+                        area = ((baseA + baseB) / 2) * heightA;
+                        q = `A trapezium has parallel sides of ${baseA} cm and ${baseB} cm, and a height of ${heightA} cm. Find its area.`;
+                        a = `${area} \\text{ cm}^2`;
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+                
+                case "Area of compound shapes":
+                    // Compound shape made of a rectangle and triangle
+                    let rectL = randInt(6, 12), rectW = randInt(4, 8);
+                    let triH = randInt(3, 6);
+                    let totalArea = (rectL * rectW) + (rectW * triH / 2); // Assume triangle on the side
+                    q = `A shape is made of a rectangle (dimensions ${rectL}cm by ${rectW}cm) and a triangle attached to the ${rectW}cm side with height ${triH}cm. Find the total area.`;
+                    a = `${totalArea} \\text{ cm}^2`;
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Properties of 3D solids":
+                    let solids = ['cuboid', 'triangular prism', 'square-based pyramid', 'cylinder'];
+                    let prop;
+                    if (points <= 200) prop = 'faces';
+                    else if (points <= 400) prop = 'vertices';
+                    else prop = 'edges';
+                    
+                    let solid = solids[randInt(0, solids.length - 1)];
+                    let count;
+                    if (solid === 'cuboid') count = (prop === 'faces' ? 6 : (prop === 'vertices' ? 8 : 12));
+                    else if (solid === 'triangular prism') count = (prop === 'faces' ? 5 : (prop === 'vertices' ? 6 : 9));
+                    else if (solid === 'square-based pyramid') count = (prop === 'faces' ? 5 : (prop === 'vertices' ? 5 : 8));
+                    else count = (prop === 'faces' ? 3 : (prop === 'vertices' ? 0 : 2)); // Cylinder
+                    
+                    q = `How many ${prop} does a ${solid} have?`;
+                    a = count.toString();
+                    return { question: q, answer: a };
+
+                case "Surface area":
+                    let l = randInt(2, 5), w = randInt(3, 6), hS = randInt(4, 8);
+                    let sa = 2 * (l * w + l * hS + w * hS);
+                    q = `Find the total surface area of a cuboid with dimensions ${l}m, ${w}m, and ${hS}m.`;
+                    a = `${sa} \\text{ m}^2`;
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Volume":
+                    let vL = randInt(3, 7), vW = randInt(2, 5), vH = randInt(4, 9);
+                    let volume = vL * vW * vH;
+                    q = `A cuboid has length ${vL}m, width ${vW}m, and height ${vH}m. What is its volume?`;
+                    a = `${volume} \\text{ m}^3`;
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "STEM measures of area and volume":
+                    let factor = randInt(1, 3);
+                    let opFactor = 10 ** (factor * 3);
+                    let unitA = 'cm', unitB = 'mm';
+                    let qVal = randInt(5, 50);
+
+                    if (points <= 300) {
+                        // Area conversion cm^2 to mm^2
+                        q = `Convert $${qVal} \\text{ cm}^2$ to square millimetres (mm$^2$).`;
+                        a = `${qVal * 100} \\text{ mm}^2`;
+                    } else {
+                        // Volume conversion m^3 to cm^3
+                         q = `Convert $${factor} \\text{ m}^3$ to cubic centimetres (cm$^3$).`;
+                        a = `${factor * 1000000} \\text{ cm}^3`;
+                    }
+                    return { question: q, answer: `$$${a}$$` };
+
+                case "Plans and elevations":
+                    let shapes = ['cube', 'rectangular prism', 'cylinder', 'triangular prism'];
+                    let shape = shapes[randInt(0, shapes.length - 1)];
+                    let view = ['Plan', 'Front', 'Side'][randInt(0, 2)];
+                    let viewResult = 'a square';
+
+                    if (shape === 'rectangular prism') viewResult = (view === 'Plan' ? 'a rectangle' : 'a rectangle');
+                    else if (shape === 'cylinder') viewResult = (view === 'Plan' ? 'a circle' : 'a rectangle');
+                    else if (shape === 'triangular prism') viewResult = (view === 'Front' ? 'a triangle' : 'a rectangle');
+                    
+                    q = `What is the **${view} Elevation** of a ${shape}?`;
+                    a = viewResult;
+                    return { question: q, answer: a };
+
+                case "Solving problems with 3D solids and measures":
+                    // Example: finding height from volume and base area
+                    let vProblem = randInt(100, 300);
+                    let baseProblem = randInt(10, 20);
+                    while (vProblem % baseProblem !== 0) { vProblem++; } // Ensure integer height
+                    let hProblem = vProblem / baseProblem;
+                    
+                    q = `A prism has a volume of $${vProblem} \\text{ m}^3$. Its cross-section has an area of $${baseProblem} \\text{ m}^2$. What is the length of the prism?`;
+                    a = `${hProblem} \\text{ m}`;
+                    return { question: q, answer: `$$${a}$$` };
+                
+                default:
+                    return { question: `No generated question available for: ${subtopic}.`, answer: `ERROR` };
+            }
+        }
+
+        // Combined topic and question data structure
+        // The 'questions' array is now empty/minimal and will be populated by generateQuestion at runtime.
+        const allTopicsData = [
             {
                 name: "Topic 1: Numbers",
                 icon: "hash",
                 subtopics: [
-                    "Calculating with negative integers",
-                    "Prime factor decomposition",
-                    "Using indices",
-                    "Priority of operations (Order of Operations)"
+                    { title: "Calculating with negative integers", questions: [] },
+                    { title: "Prime factor decomposition", questions: [] },
+                    { title: "Using indices", questions: [] },
+                    { title: "Priority of operations (Order of Operations)", questions: [] }
                 ]
             },
             {
-                name: "Topic 2: Equations and Formulae",
+                name: "Topic 2: Equations and formulae",
                 icon: "calculator",
                 subtopics: [
-                    "Solving one-step equations",
-                    "Solving two-step equations",
-                    "More complex equations",
-                    "Working with formulae"
+                    { title: "Solving one-step equations", questions: [] },
+                    { title: "Solving two-step equations", questions: [] },
+                    { title: "More complex equations", questions: [] },
+                    { title: "Working with formulae", questions: [] }
                 ]
             },
             {
-                name: "Topic 3: Working with Expressions & Powers",
+                name: "Topic 3: Working with Powers",
                 icon: "square-root",
                 subtopics: [
-                    "Simplifying expressions (collecting like terms)",
-                    "More simplifying (multiplying brackets)",
-                    "Factorising expressions",
-                    "Expanding and factorising expressions",
-                    "Substituting and solving"
+                    { title: "Simplifying expressions (collecting like terms)", questions: [] },
+                    { title: "More simplifying (multiplying brackets)", questions: [] },
+                    { title: "Factorising expressions", questions: [] },
+                    { title: "Expanding and factorising expressions", questions: [] },
+                    { title: "Substituting and solving", questions: [] }
                 ]
             },
             {
                 name: "Topic 4: 2D Shapes and 3D Solids",
                 icon: "shapes",
                 subtopics: [
-                    "Area of triangles, parallelograms and trapezia",
-                    "Area of compound shapes",
-                    "Properties of 3D solids",
-                    "Surface area",
-                    "Volume",
-                    "STEM measures of area and volume",
-                    "Plans and elevations",
-                    "Solving problems with 3D solids and measures"
+                    { title: "Area of triangles, parallelograms and trapezia", questions: [] },
+                    { title: "Area of compound shapes", questions: [] },
+                    { title: "Properties of 3D solids", questions: [] },
+                    { title: "Surface area", questions: [] },
+                    { title: "Volume", questions: [] },
+                    { title: "STEM measures of area and volume", questions: [] },
+                    { title: "Plans and elevations", questions: [] },
+                    { title: "Solving problems with 3D solids and measures", questions: [] }
                 ]
             }
-            // Topics 5-11 will be added later
-        ];
+        ].flatMap(topic => topic.subtopics.map(subtopic => ({
+            ...subtopic,
+            parentName: topic.name,
+            icon: topic.icon
+        })));
 
+
+        // --- 2. GAME STATE AND REFERENCES ---
+        
+        const selectionScreen = document.getElementById('selectionScreen');
+        const gameBoardScreen = document.getElementById('gameBoardScreen');
         const topicsContainer = document.getElementById('topicsContainer');
         const startButton = document.getElementById('startButton');
         const selectionError = document.getElementById('selectionError');
+        const geopardyGrid = document.getElementById('geopardyGrid');
+        const currentScoreElement = document.getElementById('currentScore');
+        const modal = document.getElementById('statusModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalQuestion = document.getElementById('modalQuestion');
+        const modalPoints = document.getElementById('modalPoints');
+        const modalAnswer = document.getElementById('modalAnswer');
+        const userAnswerInput = document.getElementById('userAnswer');
+        const questionContent = document.getElementById('questionContent');
+        const answerContent = document.getElementById('answerContent');
+
+        let gameState = {
+            score: 0,
+            selectedTopics: [],
+            currentQuestion: null,
+            currentCellId: null,
+            questions: {} // Stores question data by topic title
+        };
+        
+        
+        // --- 3. TOPIC SELECTION LOGIC ---
 
         /**
          * Renders the topic selection interface dynamically.
@@ -190,7 +642,17 @@
         function renderTopics() {
             topicsContainer.innerHTML = ''; // Clear previous content
 
-            allTopics.forEach((topic, index) => {
+            // Group subtopics by their parent topic name for rendering
+            const groupedTopics = allTopicsData.reduce((acc, subtopic) => {
+                const parentName = subtopic.parentName;
+                if (!acc[parentName]) {
+                    acc[parentName] = { name: parentName, icon: subtopic.icon, subtopics: [] };
+                }
+                acc[parentName].subtopics.push(subtopic);
+                return acc;
+            }, {});
+
+            Object.values(groupedTopics).forEach((topic) => {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'topic-group p-4 rounded-lg bg-gray-50 shadow-md';
                 groupDiv.innerHTML = `
@@ -199,12 +661,12 @@
                         ${topic.name}
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2">
-                        ${topic.subtopics.map((subtopic, subIndex) => `
+                        ${topic.subtopics.map((subtopic) => `
                             <label class="topic-item flex items-center p-2 rounded-lg cursor-pointer transition duration-150 ease-in-out">
-                                <input type="checkbox" name="topic" value="${topic.name}_${subtopic}" 
+                                <input type="checkbox" name="topic" value="${subtopic.title}" 
                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
                                        onchange="checkSelection()">
-                                <span class="ml-3 text-sm font-medium text-gray-700">${subtopic}</span>
+                                <span class="ml-3 text-sm font-medium text-gray-700">${subtopic.title}</span>
                             </label>
                         `).join('')}
                     </div>
@@ -228,39 +690,229 @@
         }
 
         /**
-         * Simulates starting the game by collecting selected topics and showing a modal.
-         * In a real app, this is where you'd navigate to the game board with the selected topics.
+         * Initializes the game by setting up the state and rendering the board.
          */
         function startGame() {
-            const selectedTopics = Array.from(document.querySelectorAll('input[name="topic"]:checked'))
-                .map(checkbox => checkbox.value.split('_')[1].trim());
+            const selectedTopicTitles = Array.from(document.querySelectorAll('input[name="topic"]:checked'))
+                .map(checkbox => checkbox.value);
 
-            if (selectedTopics.length === 0) {
+            if (selectedTopicTitles.length === 0) {
                 selectionError.classList.remove('hidden');
                 return;
             }
 
-            // Display success message in the modal
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.innerHTML = `You have selected **${selectedTopics.length}** topic${selectedTopics.length === 1 ? '' : 's'}. <br> Preparing the game board now!`;
+            // 1. Prepare Game State
+            gameState.score = 0;
+            gameState.selectedTopics = selectedTopicTitles;
+            gameState.questions = {};
 
-            // Show the modal
-            const modal = document.getElementById('statusModal');
+            // Populate the questions dictionary with RANDOMLY GENERATED data
+            selectedTopicTitles.forEach(title => {
+                const questionsForTopic = [];
+                pointValues.forEach(points => {
+                    const { question, answer } = generateQuestion(title, points);
+                    questionsForTopic.push({ points, question, answer, played: false });
+                });
+                gameState.questions[title] = questionsForTopic;
+            });
+
+            // 2. Render Board
+            renderGameBoard();
+
+            // 3. Switch Views
+            selectionScreen.classList.add('hidden');
+            gameBoardScreen.classList.remove('hidden');
+            currentScoreElement.textContent = '0';
+        }
+
+        // --- 4. GAME BOARD AND QUESTION LOGIC ---
+
+        /**
+         * Renders the Geopardy board based on the selected topics.
+         */
+        function renderGameBoard() {
+            const numColumns = gameState.selectedTopics.length;
+            geopardyGrid.style.gridTemplateColumns = `repeat(${numColumns}, minmax(0, 1fr))`;
+            geopardyGrid.innerHTML = '';
+
+            // 1. Column Headers (Topics)
+            gameState.selectedTopics.forEach(topicTitle => {
+                const header = document.createElement('div');
+                header.className = 'p-3 bg-blue-700 text-white font-bold text-center rounded-t-lg shadow-inner text-sm md:text-lg uppercase';
+                header.textContent = topicTitle;
+                geopardyGrid.appendChild(header);
+            });
+
+            // 2. Question Cells (Rows by Point Value)
+            // Loop 5 times for the 5 point tiers (100, 200, 300, 400, 500)
+            for (let i = 0; i < pointValues.length; i++) {
+                const points = pointValues[i];
+
+                gameState.selectedTopics.forEach((topicTitle, colIndex) => {
+                    const cell = document.createElement('div');
+                    // Create a valid ID from the topic title
+                    const safeTitle = topicTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                    const cellId = `cell-${safeTitle}-${points}`; 
+                    cell.id = cellId;
+
+                    cell.className = 'geopardy-cell bg-blue-600 rounded-sm shadow-md';
+                    cell.textContent = `$${points}`;
+                    cell.setAttribute('data-topic', topicTitle);
+                    cell.setAttribute('data-points', points);
+                    cell.setAttribute('onclick', `openQuestion('${topicTitle}', ${i}, '${cellId}')`);
+
+                    geopardyGrid.appendChild(cell);
+                });
+            }
+        }
+
+        /**
+         * Opens the question modal for the selected cell.
+         * @param {string} topicTitle - The title of the selected sub-topic.
+         * @param {number} questionIndex - The index (0-4) of the question difficulty.
+         * @param {string} cellId - The ID of the cell element.
+         */
+        function openQuestion(topicTitle, questionIndex, cellId) {
+            const questionData = gameState.questions[topicTitle][questionIndex];
+            
+            if (questionData.played) {
+                // Cell is already disabled, do nothing
+                return;
+            }
+
+            // Set current game state
+            gameState.currentQuestion = questionData;
+            gameState.currentCellId = cellId;
+            
+            // Set modal content
+            modalTitle.textContent = topicTitle;
+            modalPoints.textContent = `For $${questionData.points}`;
+            modalQuestion.innerHTML = questionData.question; // Use innerHTML to render math LaTeX
+            userAnswerInput.value = '';
+            
+            // Show/Hide relevant sections
+            questionContent.classList.remove('hidden');
+            answerContent.classList.add('hidden');
+            
+            // Display modal
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // Log selected topics (For demonstration)
-            console.log("Selected Topics for Geopardy:", selectedTopics);
-
-            // In a real application, you would load the game board here, e.g.:
-            // window.location.href = 'geopardy_game_board.html?topics=' + selectedTopics.join(',');
+            // Re-render icons/math in modal (Placeholder for true LaTeX rendering)
+            lucide.createIcons(); 
         }
 
-        // Initialize rendering when the window loads
+        /**
+         * Shows the correct answer and disables the question submission.
+         */
+        function showAnswer() {
+            // Reset modal border color
+            modal.querySelector('.bg-white').classList.remove('border-green-500', 'border-red-500');
+
+            modalTitle.textContent = 'Correct Answer';
+            modalAnswer.innerHTML = gameState.currentQuestion.answer;
+            questionContent.classList.add('hidden');
+            answerContent.classList.remove('hidden');
+            
+            // Note: score is only updated if they get it right, which is handled in checkAnswer.
+        }
+
+        /**
+         * Checks the user's answer against the correct answer.
+         */
+        function checkAnswer() {
+            // Clean input by removing non-numeric characters (except period and minus) and LaTeX symbols
+            const userAnswer = userAnswerInput.value.trim().toLowerCase().replace(/\\/g, '').replace(/[\s\$\{\}]/g, '');
+            const correctAnswer = gameState.currentQuestion.answer.trim().toLowerCase().replace(/\\/g, '').replace(/[\s\$\{\}]/g, '');
+
+            let isCorrect = false;
+            
+            // 1. Simple text comparison (for word answers like units, descriptions)
+            if (userAnswer === correctAnswer) {
+                isCorrect = true;
+            } else {
+                // 2. Numeric comparison (more lenient for math answers)
+                const userNum = parseFloat(userAnswer);
+                const correctNum = parseFloat(correctAnswer);
+                if (!isNaN(userNum) && !isNaN(correctNum) && userNum.toFixed(3) === correctNum.toFixed(3)) {
+                    isCorrect = true;
+                }
+            }
+            
+            // Update score and display result
+            if (isCorrect) {
+                gameState.score += gameState.currentQuestion.points;
+                modalTitle.textContent = `Correct! +$${gameState.currentQuestion.points}`;
+                modalAnswer.innerHTML = 'You earned the points!';
+            } else {
+                modalTitle.textContent = `Incorrect!`;
+                modalAnswer.innerHTML = 'Better luck next time.';
+            }
+
+            currentScoreElement.textContent = gameState.score;
+            
+            // Show the correct answer after checking
+            showAnswer();
+            
+            // Highlight modal based on correctness
+            if (isCorrect) {
+                modal.querySelector('.bg-white').classList.add('border-4', 'border-green-500');
+            } else {
+                modal.querySelector('.bg-white').classList.add('border-4', 'border-red-500');
+            }
+        }
+
+        /**
+         * Closes the modal and updates the game board cell.
+         */
+        function closeQuestion(markAsPlayed = true) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modal.querySelector('.bg-white').classList.remove('border-4', 'border-green-500', 'border-red-500');
+
+
+            if (markAsPlayed && gameState.currentCellId) {
+                const cell = document.getElementById(gameState.currentCellId);
+                if (cell) {
+                    // Visually mark cell as played and disable click
+                    cell.classList.remove('bg-blue-600');
+                    cell.classList.add('disabled');
+                    cell.removeAttribute('onclick');
+                    cell.textContent = 'Played';
+
+                    // Find and mark the question in the state as played
+                    const topic = cell.getAttribute('data-topic');
+                    const points = parseInt(cell.getAttribute('data-points'));
+                    const questionIndex = pointValues.indexOf(points);
+
+                    if (gameState.questions[topic] && gameState.questions[topic][questionIndex]) {
+                        gameState.questions[topic][questionIndex].played = true;
+                    }
+                }
+            }
+            
+            // Reset current question tracking
+            gameState.currentQuestion = null;
+            gameState.currentCellId = null;
+        }
+
+        // --- 5. INITIALIZATION ---
+
         window.onload = () => {
             renderTopics();
             checkSelection(); // Initial check to disable button
         };
+        
+        // Expose functions globally for HTML attributes
+        window.startGame = startGame;
+        window.checkSelection = checkSelection;
+        window.openQuestion = openQuestion;
+        window.checkAnswer = checkAnswer;
+        window.showAnswer = showAnswer;
+        window.closeQuestion = closeQuestion;
+        // Expose helper functions for question generation logic in the console
+        window.randInt = randInt;
+        window.generateQuestion = generateQuestion;
     </script>
 </body>
 </html>
