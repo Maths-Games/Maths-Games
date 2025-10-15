@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geopardy - Select Topics</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for aesthetic appeal -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Soft learning background */
+        }
+        .topic-group {
+            border-left: 5px solid theme('colors.blue.500');
+        }
+        .topic-item:hover {
+            background-color: theme('colors.blue.50');
+        }
+    </style>
+    <!-- Firebase Imports for Data Persistence -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+
+        window.app, window.db, window.auth;
+        window.userId;
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            window.app = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.app);
+            window.auth = getAuth(window.app);
+            setLogLevel('debug'); // Enable detailed Firebase logging
+
+            // Authentication setup
+            onAuthStateChanged(window.auth, async (user) => {
+                if (user) {
+                    window.userId = user.uid;
+                } else {
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(window.auth, initialAuthToken);
+                        } else {
+                            // If no custom token, sign in anonymously
+                            await signInAnonymously(window.auth);
+                        }
+                        window.userId = window.auth.currentUser?.uid || crypto.randomUUID();
+                    } catch (error) {
+                        console.error("Firebase authentication failed:", error);
+                        window.userId = crypto.randomUUID(); // Fallback
+                    }
+                }
+                console.log("Auth ready. User ID:", window.userId);
+            });
+        } else {
+            // Fallback if config is missing
+            window.userId = crypto.randomUUID();
+            console.warn("Firebase config not available. App will run without persistent storage.");
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-blue-700 shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <a href="index.html" class="text-xl font-semibold text-white hover:text-blue-200 transition duration-150 ease-in-out flex items-center">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                Back to Game Hub
+            </a>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                Geopardy: Topic Select
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content Area: Topic Selection -->
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white p-8 rounded-xl shadow-2xl">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Choose Your Challenge Topics</h2>
+            <p class="text-gray-600 mb-8">
+                Select one or more topics to build your custom Geopardy game board.
+            </p>
+
+            <form id="topicSelectionForm">
+                <!-- Topics will be dynamically inserted here -->
+                <div id="topicsContainer" class="space-y-6">
+                    <!-- Dynamic Content -->
+                </div>
+
+                <div class="mt-10 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="startGame()" id="startButton" class="w-full py-3 px-6 border border-transparent rounded-lg shadow-xl text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500 transition duration-200 disabled:opacity-50" disabled>
+                        <i data-lucide="play" class="inline-block w-6 h-6 mr-2"></i>
+                        Start Geopardy Game
+                    </button>
+                    <p id="selectionError" class="text-red-500 text-center mt-3 hidden">
+                        Please select at least one sub-topic to start the game.
+                    </p>
+                </div>
+            </form>
+
+            <!-- Game Status Modal (replacing alert()) -->
+            <div id="statusModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4">
+                <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full text-center">
+                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500 mx-auto mb-4"></i>
+                    <h3 class="text-xl font-bold mb-3">Game Starting!</h3>
+                    <p id="statusMessage" class="text-gray-700 mb-6"></p>
+                    <button onclick="document.getElementById('statusModal').classList.add('hidden')" class="py-2 px-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        Awesome!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2025 Set One Maths Games. Designed for Interactive Learning.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data structure for all available topics (based on your curriculum guide)
+        const allTopics = [
+            {
+                name: "Topic 1: Numbers",
+                icon: "hash",
+                subtopics: [
+                    "Calculating with negative integers",
+                    "Prime factor decomposition",
+                    "Using indices",
+                    "Priority of operations (Order of Operations)"
+                ]
+            },
+            {
+                name: "Topic 2: Equations and Formulae",
+                icon: "calculator",
+                subtopics: [
+                    "Solving one-step equations",
+                    "Solving two-step equations",
+                    "More complex equations",
+                    "Working with formulae"
+                ]
+            },
+            {
+                name: "Topic 3: Working with Expressions & Powers",
+                icon: "square-root",
+                subtopics: [
+                    "Simplifying expressions (collecting like terms)",
+                    "More simplifying (multiplying brackets)",
+                    "Factorising expressions",
+                    "Expanding and factorising expressions",
+                    "Substituting and solving"
+                ]
+            },
+            {
+                name: "Topic 4: 2D Shapes and 3D Solids",
+                icon: "shapes",
+                subtopics: [
+                    "Area of triangles, parallelograms and trapezia",
+                    "Area of compound shapes",
+                    "Properties of 3D solids",
+                    "Surface area",
+                    "Volume",
+                    "STEM measures of area and volume",
+                    "Plans and elevations",
+                    "Solving problems with 3D solids and measures"
+                ]
+            }
+            // Topics 5-11 will be added later
+        ];
+
+        const topicsContainer = document.getElementById('topicsContainer');
+        const startButton = document.getElementById('startButton');
+        const selectionError = document.getElementById('selectionError');
+
+        /**
+         * Renders the topic selection interface dynamically.
+         */
+        function renderTopics() {
+            topicsContainer.innerHTML = ''; // Clear previous content
+
+            allTopics.forEach((topic, index) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'topic-group p-4 rounded-lg bg-gray-50 shadow-md';
+                groupDiv.innerHTML = `
+                    <div class="flex items-center mb-3 text-lg font-bold text-blue-800">
+                        <i data-lucide="${topic.icon}" class="w-5 h-5 mr-3"></i>
+                        ${topic.name}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2">
+                        ${topic.subtopics.map((subtopic, subIndex) => `
+                            <label class="topic-item flex items-center p-2 rounded-lg cursor-pointer transition duration-150 ease-in-out">
+                                <input type="checkbox" name="topic" value="${topic.name}_${subtopic}" 
+                                       class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+                                       onchange="checkSelection()">
+                                <span class="ml-3 text-sm font-medium text-gray-700">${subtopic}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                topicsContainer.appendChild(groupDiv);
+            });
+
+            // Initialize Lucide icons after rendering
+            lucide.createIcons();
+        }
+
+        /**
+         * Checks if any sub-topic is selected and enables/disables the start button.
+         */
+        function checkSelection() {
+            const checkboxes = document.querySelectorAll('input[name="topic"]');
+            const isAnySelected = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+            startButton.disabled = !isAnySelected;
+            selectionError.classList.toggle('hidden', isAnySelected);
+        }
+
+        /**
+         * Simulates starting the game by collecting selected topics and showing a modal.
+         * In a real app, this is where you'd navigate to the game board with the selected topics.
+         */
+        function startGame() {
+            const selectedTopics = Array.from(document.querySelectorAll('input[name="topic"]:checked'))
+                .map(checkbox => checkbox.value.split('_')[1].trim());
+
+            if (selectedTopics.length === 0) {
+                selectionError.classList.remove('hidden');
+                return;
+            }
+
+            // Display success message in the modal
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerHTML = `You have selected **${selectedTopics.length}** topic${selectedTopics.length === 1 ? '' : 's'}. <br> Preparing the game board now!`;
+
+            // Show the modal
+            const modal = document.getElementById('statusModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Log selected topics (For demonstration)
+            console.log("Selected Topics for Geopardy:", selectedTopics);
+
+            // In a real application, you would load the game board here, e.g.:
+            // window.location.href = 'geopardy_game_board.html?topics=' + selectedTopics.join(',');
+        }
+
+        // Initialize rendering when the window loads
+        window.onload = () => {
+            renderTopics();
+            checkSelection(); // Initial check to disable button
+        };
+    </script>
+</body>
+</html>
