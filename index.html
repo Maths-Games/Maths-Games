@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set One Maths Games</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for aesthetic appeal -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles to ensure the font looks good and for basic background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb; /* Light educational background */
+        }
+        /* Custom utility for subtle shadow on cards */
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-indigo-700 shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                Set One Maths Game Hub
+            </h1>
+            <button class="text-white hover:text-indigo-200 transition duration-150 ease-in-out px-3 py-2 rounded-lg border border-indigo-400">
+                <i data-lucide="user" class="inline-block w-5 h-5 mr-1"></i>
+                My Progress
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area: Game Grid -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+        <p class="text-center text-xl text-gray-600 mb-10">
+            Choose a game below to begin your mathematical adventure!
+        </p>
+
+        <!-- Game Card Container (Responsive Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- 1. Geopardy Card (Geometry Focus) -->
+            <div class="card-shadow bg-white p-6 rounded-xl border-t-4 border-t-blue-500 cursor-pointer hover:border-t-blue-700">
+                <div class="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                    <!-- Icon for Geometry/Shapes -->
+                    <i data-lucide="shapes" class="w-8 h-8 text-blue-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Geopardy</h2>
+                <p class="text-gray-500 mb-4 h-16">
+                    A quiz-style game testing your knowledge of shapes, angles, and spatial reasoning. Are you ready for the challenge?
+                </p>
+                <a href="#geopardy-game" class="block w-full text-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                    Start Geopardy
+                </a>
+            </div>
+
+            <!-- 2. Fraction Frenzy Card (Fractions Focus) -->
+            <div class="card-shadow bg-white p-6 rounded-xl border-t-4 border-t-green-500 cursor-pointer hover:border-t-green-700">
+                <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                    <!-- Icon for Fractions/Dividing -->
+                    <i data-lucide="divide" class="w-8 h-8 text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Fraction Frenzy</h2>
+                <p class="text-gray-500 mb-4 h-16">
+                    Quickly compare, add, and subtract fractions before the time runs out. Master the world of parts and wholes!
+                </p>
+                <a href="#fraction-frenzy-game" class="block w-full text-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                    Start Fraction Frenzy
+                </a>
+            </div>
+
+            <!-- 3. Algebra Ascent Card (Algebra Focus) -->
+            <div class="card-shadow bg-white p-6 rounded-xl border-t-4 border-t-purple-500 cursor-pointer hover:border-t-purple-700">
+                <div class="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                    <!-- Icon for Variables/Equations -->
+                    <i data-lucide="variable" class="w-8 h-8 text-purple-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Algebra Ascent</h2>
+                <p class="text-gray-500 mb-4 h-16">
+                    Solve for X! Practice single-variable linear equations and advance through the levels of algebra mastery.
+                </p>
+                <a href="#algebra-ascent-game" class="block w-full text-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150">
+                    Start Algebra Ascent
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2025 Set One Maths Games. Designed for Interactive Learning.</p>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
