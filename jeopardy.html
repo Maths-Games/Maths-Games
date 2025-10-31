@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geopardy: Select Topics</title>
+    <title>Jeopardy: Select Topics</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load KaTeX for Math rendering -->
@@ -43,7 +43,7 @@
             transition: all 0.2s ease-in-out;
         }
 
-        /* Geopardy Specific Styles */
+        /* Jeopardy Specific Styles */
         .topic-header {
             cursor: pointer;
             transition: background-color 0.2s;
@@ -96,7 +96,7 @@
 
     <main class="w-full max-w-6xl">
         <header class="text-center mb-6">
-            <h1 class="text-4xl font-extrabold tracking-tight">Geopardy Team Challenge</h1>
+            <h1 class="text-4xl font-extrabold tracking-tight">Jeopardy Team Challenge</h1>
         </header>
 
         <!-- Main Content Area -->
@@ -114,7 +114,7 @@
 
                 <div class="mt-8 pt-4 border-t border-gray-700 flex justify-center">
                     <button onclick="startGame()" class="glass-action-button bg-green-600 hover:bg-green-700 py-3 px-10 rounded-full transition duration-150 transform hover:scale-105 disabled:opacity-50" id="startButton" disabled>
-                        <i data-lucide="play" class="inline w-5 h-5 mr-2"></i> Start Geopardy Game
+                        <i data-lucide="play" class="inline w-5 h-5 mr-2"></i> Start Jeopardy Game
                     </button>
                 </div>
             </div>
@@ -122,7 +122,7 @@
             <!-- 2. Game Board Screen (Hidden Initially) -->
             <div id="gameBoardScreen" class="hidden">
                 <div class="flex flex-col lg:flex-row justify-between items-start mb-6 space-y-4 lg:space-y-0">
-                    <h2 class="text-3xl font-bold text-yellow-300">Geopardy Board</h2>
+                    <h2 class="text-3xl font-bold text-yellow-300">Jeopardy Board</h2>
                     <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
                         <div id="activeTurnDisplay" class="text-lg font-semibold border-b-2 border-transparent pb-1"></div>
                         <button onclick="openScoreControl()" class="glass-action-button bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-lg text-sm">
@@ -452,7 +452,7 @@
 
         function getSelectedSubtopics() {
             try {
-                const stored = localStorage.getItem('geopardy_selectedTopics');
+                const stored = localStorage.getItem('Jeopardy_selectedTopics');
                 return stored ? JSON.parse(stored) : [];
             } catch (e) {
                 console.error("Error reading selected topics from storage", e);
@@ -461,7 +461,7 @@
         }
 
         function saveSelectedSubtopics() {
-            localStorage.setItem('geopardy_selectedTopics', JSON.stringify(gameState.selectedSubtopics));
+            localStorage.setItem('Jeopardy_selectedTopics', JSON.stringify(gameState.selectedSubtopics));
         }
 
         function isSubtopicSelected(subtopicId) {
@@ -544,7 +544,7 @@
             // Rule: You need at least 5 sub-topics selected to start the game (5 columns)
             if (gameState.selectedSubtopics.length >= 5) {
                 startButton.disabled = false;
-                startButton.textContent = `Start Geopardy Game (${gameState.selectedSubtopics.length} topics selected)`;
+                startButton.textContent = `Start Jeopardy Game (${gameState.selectedSubtopics.length} topics selected)`;
             } else {
                 startButton.disabled = true;
                 startButton.textContent = `Select ${5 - gameState.selectedSubtopics.length} more topics to start`;
@@ -567,7 +567,7 @@
         }
 
         function loadGameState() {
-            const storedState = localStorage.getItem('geopardy_gameState');
+            const storedState = localStorage.getItem('Jeopardy_gameState');
             if (storedState) {
                 const loadedState = JSON.parse(storedState);
                 // Only load game state if a board was actually created
@@ -588,7 +588,7 @@
         }
 
         function saveGameState() {
-            localStorage.setItem('geopardy_gameState', JSON.stringify(gameState));
+            localStorage.setItem('Jeopardy_gameState', JSON.stringify(gameState));
         }
 
         function startGame() {
@@ -639,7 +639,7 @@
 
         function endGame() {
             if (confirm("Are you sure you want to end the game and return to topic selection? The current scores will be lost.")) {
-                localStorage.removeItem('geopardy_gameState');
+                localStorage.removeItem('Jeopardy_gameState');
                 location.reload(); // Simple way to reset everything and go back to selection
             }
         }
