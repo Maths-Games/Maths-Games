@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load KaTeX for Math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" xintegrity="sha384-GvrDXHqI9KwB6r6JpUSaeY5U2Vms3R+nQzSS0a0FfT2Hn2r8R8GjT+j1O8P2K8/9" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" xintegrity="sha384-FhXpT8B1s/kM8Sg+3vNfP6P6E6Jp7Wl7mF5F4A/T4e8vD2T+l0b6K0/2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" xintegrity="sha384-FhXpT8B1s/kM8Sg+3vNfP6P6E9u6j8o+fE8x2Q2OQz5/t3KzP/1O2y3O0z3J7p2F1D1z2" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" xintegrity="sha384-+Fw84C7GUD9d2I/jV7vE9u6j8o+fE8x2Q2OQz5/t3KzP/1O2y3O0z3J7p2F1D1z2" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
     <!-- Load Lucide Icons -->
     <script type="module" src="https://unpkg.com/lucide@latest"></script>
@@ -105,7 +105,7 @@
             <!-- 1. Topic Selection Screen -->
             <div id="selectionScreen">
                 <h2 class="text-3xl font-bold mb-4 text-yellow-300">1. Select Your Math Topics</h2>
-                <p class="text-gray-300 mb-6">Choose at least 5 sub-topics (one per column) to create the game board. Click a unit name to see the lessons!</p>
+                <p class="text-gray-300 mb-6">Choose at least 5 sub-topics. **All selected topics will appear as columns** on the game board.</p>
                 
                 <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                     <!-- Topics will be dynamically rendered here -->
@@ -114,7 +114,7 @@
 
                 <div class="mt-8 pt-4 border-t border-gray-700 flex justify-center">
                     <button onclick="startGame()" class="glass-action-button bg-green-600 hover:bg-green-700 py-3 px-10 rounded-full transition duration-150 transform hover:scale-105 disabled:opacity-50" id="startButton" disabled>
-                        <i data-lucide="play" class="inline w-5 h-5 mr-2"></i> Start Jeopardy Game
+                        <i data-lucide="play" class="inline w-5 h-5 mr-2"></i> Select 5 topics to start
                     </button>
                 </div>
             </div>
@@ -145,7 +145,8 @@
                 </div>
 
                 <!-- Game Grid -->
-                <div id="gameGrid" class="grid grid-cols-5 gap-1 lg:gap-2">
+                <!-- Removed grid-cols-5 class; column count is now set dynamically by JavaScript -->
+                <div id="gameGrid" class="grid gap-1 lg:gap-2">
                     <!-- Grid will be populated by renderGameBoard() -->
                 </div>
             </div>
@@ -161,19 +162,19 @@
             
             <!-- Answer Area -->
             <div id="answerArea">
-                <h3 class="text-xl font-bold mb-2">Answer:</h3>
+                <h3 class="text-xl font-bold mb-2">Correct Answer:</h3>
                 <div id="correctAnswer" class="text-2xl font-mono p-4 rounded-lg bg-gray-700 mb-6 hidden"></div>
             </div>
 
-            <div class="flex justify-center space-x-4">
-                <button onclick="checkAnswer(true)" class="glass-action-button bg-green-600 hover:bg-green-700 py-3 px-6 rounded-full">
+            <div class="flex justify-center space-x-4 flex-wrap">
+                <button onclick="checkAnswer(true)" class="glass-action-button bg-green-600 hover:bg-green-700 py-3 px-6 rounded-full mb-2">
                     Correct Answer (<span id="correctPoints">+0</span>)
                 </button>
-                <button onclick="checkAnswer(false)" class="glass-action-button bg-red-600 hover:bg-red-700 py-3 px-6 rounded-full">
+                <button onclick="checkAnswer(false)" class="glass-action-button bg-red-600 hover:bg-red-700 py-3 px-6 rounded-full mb-2">
                     Incorrect Answer (<span id="incorrectPoints">-0</span>)
                 </button>
-                <button onclick="closeQuestion()" class="glass-action-button bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-full" id="closeButton" style="display: none;">
-                    Close
+                <button onclick="closeQuestion()" class="glass-action-button bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-full mb-2" id="closeButton" style="display: none;">
+                    Close Question
                 </button>
             </div>
         </div>
@@ -214,7 +215,7 @@
     <script>
         // --- Configuration & Data ---
 
-        // Team members for random player selection (from previous team setup)
+        // Team members for random player selection 
         const teams = {
             red: ["Moh Ib", "Abdallah", "Talia", "Fatema", "Lara", "Cyrine", "Sofia", "Ojas", "Mosaab", "Taha", "Moh El", "Adam"],
             blue: ["Andrew", "Leen", "Karma", "Zeyad", "Ashirya", "Retaj", "Ignacio", "Aziz", "Aparajita", "Aala", "Hussein", "Movses", "Yousef", "Jorge"],
@@ -316,470 +317,346 @@
                 name: 'Shapes and angles',
                 subtopics: [
                     { id: '9.1', name: 'Quadrilaterals', difficulty: 1 },
-                    { id: '9.2', name: 'Angles and parallel lines', difficulty: 2 },
-                    { id: '9.3', name: 'Angles in polygons', difficulty: 3 },
-                ]
-            },
-            {
-                id: '10',
-                name: 'Charts and diagrams',
-                subtopics: [
-                    { id: '10.1', name: 'Using tables', difficulty: 1 },
-                    { id: '10.2', name: 'Stem and leaf diagrams', difficulty: 2 },
-                    { id: '10.3', name: 'Pie charts', difficulty: 3 },
-                    { id: '10.4', name: 'Comparing data', difficulty: 4 },
-                    { id: '10.5', name: 'STEM: Scatter graphs and correlation', difficulty: 5 },
-                ]
-            },
-            {
-                id: '11',
-                name: 'Straight-line graphs',
-                subtopics: [
-                    { id: '11.1', name: 'Plotting linear graphs', difficulty: 1 },
-                    { id: '11.2', name: 'The gradient', difficulty: 2 },
-                    { id: '11.3', name: '$y = mx + c$', difficulty: 3 },
+                    { id: '9.2', name: 'Interior and exterior angles of polygons', difficulty: 2 },
+                    { id: '9.3', name: 'Parallel lines', difficulty: 3 },
+                    { id: '9.4', name: 'Congruence and similarity', difficulty: 4 },
+                    { id: '9.5', name: 'Solving problems with angles', difficulty: 5 },
                 ]
             },
         ];
 
-        // Global State
-        let gameState = {
-            redScore: 0,
-            blueScore: 0,
-            currentTurn: 'red', // 'red' or 'blue'
-            currentQuestion: null,
-            board: [], // Stores question data for the game board
-            selectedSubtopics: [],
-        };
-        
-        const POINTS = [100, 200, 300, 400, 500];
-        
-        // Question Generation Functions (Simplified to focus on structure)
-        function generateQuestion(subtopicId, points) {
-            const topic = allTopicsData.flatMap(t => t.subtopics).find(s => s.id === subtopicId);
-            const difficultyLevel = POINTS.indexOf(points); // 0=100, 4=500
+        let selectedSubtopics = []; // Stores the subtopic objects chosen for the game
+        let currentGameState = [];  // Matrix to track played cells
+        let currentTurn = 'red';
+        let redScore = 0;
+        let blueScore = 0;
+        let activeQuestion = null; // Stores { points, team, cellId }
 
-            // Placeholder for generated content. This is where you would call the LLM to get high-quality questions.
-            let question = `Question for **Unit ${topic.id}**: ${topic.name} (Difficulty ${difficultyLevel + 1}).\n\n`;
-            let answer = `Answer to Unit ${topic.id} (Value: ${points}).`;
+        // --- Game Logic ---
 
-            // Example of using proper math symbols
-            if (topic.id === '1.4' && difficultyLevel >= 2) {
-                // Priority of Operations (300+ points)
-                const a = Math.floor(Math.random() * 5) + 2;
-                const b = Math.floor(Math.random() * 4) + 1;
-                const c = Math.floor(Math.random() * 3) + 1;
-                question = `Calculate: $${a} + ${b} \\times (${c} - 1)^2$.`;
-                answer = `${a + b * ((c - 1) ** 2)}`;
-            } else if (topic.id === '2.2' && difficultyLevel >= 1) {
-                // Solving two-step equations (200+ points)
-                const a = Math.floor(Math.random() * 5) + 2;
-                const b = Math.floor(Math.random() * 8) + 3;
-                const c = Math.floor(Math.random() * 10) + 10;
-                question = `Solve for the variable $\\text{x}$: $${a}\\text{x} + ${b} = ${c}$.`;
-                answer = `$\\text{x} = \\frac{${c - b}}{${a}}$ (or ${((c-b)/a).toFixed(2)})`;
-            } else if (topic.id === '3.3' && difficultyLevel >= 3) {
-                // Factorising expressions (400+ points)
-                const a = Math.floor(Math.random() * 5) + 2;
-                const b = a * (Math.floor(Math.random() * 3) + 1);
-                question = `Factorise the expression: $${a}\\text{y} + ${b}$.`;
-                answer = `$${a}(\\text{y} + ${b / a})$`;
-            } else if (topic.id === '4.1' && difficultyLevel >= 0) {
-                // Area of shapes (100+ points)
-                const base = Math.floor(Math.random() * 10) + 5;
-                const height = Math.floor(Math.random() * 5) + 3;
-                question = `Find the area of a triangle with a base of $${base}\\,\\text{cm}$ and height of $${height}\\,\\text{cm}$.`;
-                answer = `Area $= \\frac{1}{2} \\times ${base} \\times ${height} = ${0.5 * base * height}\\,\\text{cm}^2$`;
+        function toggleSubtopics(topicId) {
+            const list = document.getElementById(`list-${topicId}`);
+            list.classList.toggle('open');
+            // Toggle chevron icon
+            const icon = document.getElementById(`icon-${topicId}`);
+            if (list.classList.contains('open')) {
+                icon.innerHTML = '<i data-lucide="chevron-up" class="w-5 h-5"></i>';
+            } else {
+                icon.innerHTML = '<i data-lucide="chevron-down" class="w-5 h-5"></i>';
             }
-
-            return { question: question, answer: answer };
+            // Ensure icons are rendered after change
+            lucide.createIcons();
         }
 
-        // --- View Management Functions ---
+        function updateSelectedTopics() {
+            selectedSubtopics = [];
+            const checkboxes = document.querySelectorAll('input[name="subtopic"]:checked');
+            checkboxes.forEach(checkbox => {
+                const parts = checkbox.value.split(':');
+                const topicId = parts[0];
+                const subtopicId = parts[1];
+                const topic = allTopicsData.find(t => t.id === topicId);
+                const subtopic = topic.subtopics.find(s => s.id === subtopicId);
+                if (subtopic) {
+                    selectedSubtopics.push(subtopic);
+                }
+            });
+
+            const startButton = document.getElementById('startButton');
+            if (selectedSubtopics.length >= 1) { // Minimum 1 for testing, typically 5+
+                startButton.disabled = false;
+                startButton.textContent = `Start Game with ${selectedSubtopics.length} topics`;
+            } else {
+                startButton.disabled = true;
+                startButton.textContent = `Select at least 1 topic to start`;
+            }
+        }
 
         function renderTopicSelection() {
             const container = document.getElementById('topicContainer');
-            container.innerHTML = ''; // Clear existing content
-
-            allTopicsData.forEach(topic => {
-                const isChecked = topicIsSelected(topic.id);
-                const isPartiallyChecked = topic.subtopics.some(sub => isSubtopicSelected(sub.id));
-                const accordionOpen = localStorage.getItem('accordion-' + topic.id) === 'true';
-
-                const topicElement = document.createElement('div');
-                topicElement.className = 'glass-card rounded-lg overflow-hidden';
-
-                topicElement.innerHTML = `
-                    <!-- Header (acts as whole topic selection and accordion toggle) -->
-                    <div class="topic-header p-4 flex justify-between items-center text-xl font-semibold bg-opacity-10" 
-                        onclick="toggleAccordion('${topic.id}', event)">
-                        <div class="flex items-center space-x-3">
-                            <input type="checkbox" id="topic-${topic.id}" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                                ${isChecked ? 'checked' : ''}
-                                data-topic-id="${topic.id}"
-                                onchange="toggleWholeTopic('${topic.id}', this.checked); updateStartButton();">
-                            <label for="topic-${topic.id}" class="cursor-pointer">${topic.name}</label>
-                            ${isPartiallyChecked && !isChecked ? '<span class="text-sm text-yellow-400">(Partial)</span>' : ''}
-                        </div>
-                        <i data-lucide="chevron-down" class="w-6 h-6 transition-transform duration-300 ${accordionOpen ? 'rotate-180' : ''}"></i>
+            container.innerHTML = allTopicsData.map(topic => `
+                <div class="glass-card rounded-xl">
+                    <div id="header-${topic.id}" class="topic-header p-4 flex justify-between items-center rounded-t-xl" onclick="toggleSubtopics('${topic.id}')">
+                        <span class="font-bold text-lg">${topic.name}</span>
+                        <span id="icon-${topic.id}"><i data-lucide="chevron-down" class="w-5 h-5"></i></span>
                     </div>
-
-                    <!-- Subtopics List -->
-                    <div id="subtopic-list-${topic.id}" class="subtopic-list ${accordionOpen ? 'open' : ''} bg-gray-800 bg-opacity-50">
-                        <div class="p-4 space-y-2">
-                            ${topic.subtopics.map(sub => `
-                                <div class="subtopic-item flex items-center">
-                                    <input type="checkbox" id="subtopic-${sub.id}" class="hidden"
-                                        ${isSubtopicSelected(sub.id) ? 'checked' : ''}
-                                        data-topic-id="${topic.id}"
-                                        onchange="toggleSubtopic('${sub.id}', this.checked); updateStartButton();">
-                                    <label for="subtopic-${sub.id}" class="flex-grow p-2 rounded-lg cursor-pointer border border-gray-700 hover:bg-gray-700 text-sm">
-                                        ${sub.name} (Unit ${sub.id})
-                                    </label>
-                                </div>
-                            `).join('')}
-                        </div>
+                    <div id="list-${topic.id}" class="subtopic-list border-t border-gray-700 rounded-b-xl">
+                        ${topic.subtopics.map(subtopic => `
+                            <div class="p-2 px-4 subtopic-item border-b border-gray-800 last:border-b-0">
+                                <input type="checkbox" id="subtopic-${subtopic.id}" name="subtopic" value="${topic.id}:${subtopic.id}" onchange="updateSelectedTopics()" class="hidden">
+                                <label for="subtopic-${subtopic.id}" class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-gray-800">
+                                    <span>${subtopic.name}</span>
+                                    <span class="text-sm font-light text-gray-400">Level ${subtopic.difficulty}</span>
+                                </label>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-                container.appendChild(topicElement);
-            });
-            // Re-render icons after adding new HTML
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-            updateStartButton();
-        }
+                </div>
+            `).join('');
 
-        // --- Topic Selection Logic ---
-
-        function getSelectedSubtopics() {
-            try {
-                const stored = localStorage.getItem('Jeopardy_selectedTopics');
-                return stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.error("Error reading selected topics from storage", e);
-                return [];
-            }
-        }
-
-        function saveSelectedSubtopics() {
-            localStorage.setItem('Jeopardy_selectedTopics', JSON.stringify(gameState.selectedSubtopics));
-        }
-
-        function isSubtopicSelected(subtopicId) {
-            return gameState.selectedSubtopics.includes(subtopicId);
-        }
-
-        function topicIsSelected(topicId) {
-            const topic = allTopicsData.find(t => t.id === topicId);
-            if (!topic) return false;
-            return topic.subtopics.every(sub => isSubtopicSelected(sub.id));
-        }
-
-        function toggleSubtopic(subtopicId, isChecked) {
-            if (isChecked) {
-                if (!isSubtopicSelected(subtopicId)) {
-                    gameState.selectedSubtopics.push(subtopicId);
-                }
-            } else {
-                gameState.selectedSubtopics = gameState.selectedSubtopics.filter(id => id !== subtopicId);
-            }
-            saveSelectedSubtopics();
-            updateTopicHeaderCheckbox(subtopicId.split('.')[0]);
-        }
-
-        function toggleWholeTopic(topicId, isChecked) {
-            const topic = allTopicsData.find(t => t.id === topicId);
-            if (!topic) return;
-
-            topic.subtopics.forEach(sub => {
-                const checkbox = document.getElementById(`subtopic-${sub.id}`);
-                if (checkbox) {
-                    checkbox.checked = isChecked;
-                    toggleSubtopic(sub.id, isChecked);
-                }
-            });
-        }
-        
-        function updateTopicHeaderCheckbox(topicId) {
-            const headerCheckbox = document.getElementById(`topic-${topicId}`);
-            if (!headerCheckbox) return;
-
-            const topic = allTopicsData.find(t => t.id === topicId);
-            const allSubtopics = topic.subtopics.map(sub => sub.id);
-            const selectedInTopic = allSubtopics.filter(id => isSubtopicSelected(id));
-
-            if (selectedInTopic.length === allSubtopics.length) {
-                headerCheckbox.checked = true;
-                headerCheckbox.indeterminate = false;
-            } else if (selectedInTopic.length > 0) {
-                headerCheckbox.checked = false;
-                headerCheckbox.indeterminate = true;
-            } else {
-                headerCheckbox.checked = false;
-                headerCheckbox.indeterminate = false;
-            }
-            // Re-render the whole list to show (Partial) text, simplest solution for now
-            renderTopicSelection(); 
-        }
-
-        function toggleAccordion(topicId, event) {
-            // Prevent the click from toggling the checkbox if the checkbox itself was clicked
-            if (event.target.closest('input[type="checkbox"]')) return;
-
-            const list = document.getElementById(`subtopic-list-${topicId}`);
-            const icon = event.currentTarget.querySelector('i');
-            
-            if (list.classList.contains('open')) {
-                list.classList.remove('open');
-                icon.classList.remove('rotate-180');
-                localStorage.setItem('accordion-' + topicId, 'false');
-            } else {
-                list.classList.add('open');
-                icon.classList.add('rotate-180');
-                localStorage.setItem('accordion-' + topicId, 'true');
-            }
-        }
-        
-        function updateStartButton() {
-            const startButton = document.getElementById('startButton');
-            // Rule: You need at least 5 sub-topics selected to start the game (5 columns)
-            if (gameState.selectedSubtopics.length >= 5) {
-                startButton.disabled = false;
-                startButton.textContent = `Start Jeopardy Game (${gameState.selectedSubtopics.length} topics selected)`;
-            } else {
-                startButton.disabled = true;
-                startButton.textContent = `Select ${5 - gameState.selectedSubtopics.length} more topics to start`;
-            }
-        }
-
-        // --- Game Setup and Start ---
-
-        function initializeGame() {
-            // Load selected topics from localStorage
-            gameState.selectedSubtopics = getSelectedSubtopics();
-            renderTopicSelection();
-            
-            // Re-check headers after initial load
-            allTopicsData.forEach(topic => updateTopicHeaderCheckbox(topic.id));
-            updateStartButton();
-
-            // Load scores if game was interrupted
-            loadGameState();
-        }
-
-        function loadGameState() {
-            const storedState = localStorage.getItem('Jeopardy_gameState');
-            if (storedState) {
-                const loadedState = JSON.parse(storedState);
-                // Only load game state if a board was actually created
-                if (loadedState.board.length > 0 && loadedState.selectedSubtopics.length >= 5) {
-                    gameState = loadedState;
-                    // Immediately jump to the game board
-                    document.getElementById('selectionScreen').classList.add('hidden');
-                    document.getElementById('gameBoardScreen').classList.remove('hidden');
-                    renderGameBoard();
-                    updateScoreDisplay();
-                    updateTurnDisplay();
-                    return;
-                }
-            }
-            // Default to selection screen if no valid game state is found
-            document.getElementById('selectionScreen').classList.remove('hidden');
-            document.getElementById('gameBoardScreen').classList.add('hidden');
-        }
-
-        function saveGameState() {
-            localStorage.setItem('Jeopardy_gameState', JSON.stringify(gameState));
+            // Rerender Lucide icons for chevrons
+            lucide.createIcons();
         }
 
         function startGame() {
-            const selectedTopics = gameState.selectedSubtopics;
+            if (selectedSubtopics.length === 0) return;
+            
+            // 1. Initialize Game State Matrix: Rows (5 difficulty levels) x Cols (selected topics)
+            // Each cell stores 0 (unplayed) or 1 (played)
+            currentGameState = Array(5).fill(0).map(() => Array(selectedSubtopics.length).fill(0));
 
-            if (selectedTopics.length < 5) {
-                alert("Please select at least 5 sub-topics to start the game.");
-                return;
-            }
+            // 2. Set dynamic grid columns based on number of selected topics
+            const gameGrid = document.getElementById('gameGrid');
+            gameGrid.style.gridTemplateColumns = `repeat(${selectedSubtopics.length}, minmax(0, 1fr))`;
 
-            // Shuffle topics and pick the first 5 (to fit a 5-column board)
-            const shuffledTopics = selectedTopics.sort(() => 0.5 - Math.random());
-            const boardTopics = shuffledTopics.slice(0, 5);
-
-            // Build the game board data structure
-            gameState.board = [];
-            for (let colIndex = 0; colIndex < 5; colIndex++) {
-                const subtopicId = boardTopics[colIndex];
-                const column = [];
-                for (let rowIndex = 0; rowIndex < POINTS.length; rowIndex++) {
-                    const points = POINTS[rowIndex];
-                    const questionData = generateQuestion(subtopicId, points);
-                    column.push({
-                        topic: subtopicId,
-                        points: points,
-                        question: questionData.question,
-                        answer: questionData.answer,
-                        played: false,
-                    });
-                }
-                gameState.board.push(column);
-            }
-
-            // Reset scores and turn
-            gameState.redScore = 0;
-            gameState.blueScore = 0;
-            gameState.currentTurn = Math.random() < 0.5 ? 'red' : 'blue';
-
-            saveGameState();
+            // 3. Render the board
             renderGameBoard();
-            updateScoreDisplay();
-            updateTurnDisplay();
 
-            // Switch views
+            // 4. Set initial turn
+            setTurn(currentTurn);
+
+            // 5. Switch Screens
             document.getElementById('selectionScreen').classList.add('hidden');
             document.getElementById('gameBoardScreen').classList.remove('hidden');
+            
+            // 6. Rerender Lucide icons for the new screen
+            lucide.createIcons();
         }
-
-        function endGame() {
-            if (confirm("Are you sure you want to end the game and return to topic selection? The current scores will be lost.")) {
-                localStorage.removeItem('Jeopardy_gameState');
-                location.reload(); // Simple way to reset everything and go back to selection
-            }
-        }
-        
-        // --- Game Board Rendering & Interaction ---
 
         function renderGameBoard() {
-            const grid = document.getElementById('gameGrid');
-            grid.innerHTML = ''; // Clear previous board
+            const gameGrid = document.getElementById('gameGrid');
+            let html = '';
+            const pointValues = [100, 200, 300, 400, 500];
 
-            const subtopicMap = allTopicsData.flatMap(t => t.subtopics).reduce((acc, sub) => {
-                acc[sub.id] = sub.name;
-                return acc;
-            }, {});
-
-            // 1. Render Header Row (Topic Names)
-            gameState.board.forEach(column => {
-                const topicId = column[0].topic;
-                const header = document.createElement('div');
-                header.className = 'col-span-1 p-2 lg:p-4 text-center font-extrabold text-sm lg:text-xl rounded-t-md text-white border-b-2 border-yellow-300';
-                header.style.backgroundColor = 'rgba(255, 180, 0, 0.45)'; // Yellow glass style
-                header.textContent = subtopicMap[topicId] || `Topic ${topicId}`;
-                grid.appendChild(header);
+            // Add Header Row (Topics)
+            selectedSubtopics.forEach(subtopic => {
+                html += `<div class="p-3 lg:p-4 text-lg lg:text-xl font-extrabold text-center bg-blue-900 rounded-md shadow-xl border border-blue-700">${subtopic.name}</div>`;
             });
 
-            // 2. Render Question Cells
-            // Iterate through rows (points)
-            for (let rowIndex = 0; rowIndex < POINTS.length; rowIndex++) {
-                // Iterate through columns (topics)
-                for (let colIndex = 0; colIndex < gameState.board.length; colIndex++) {
-                    const cellData = gameState.board[colIndex][rowIndex];
-                    const cell = document.createElement('div');
-                    cell.className = `board-cell ${cellData.played ? 'played' : 'bg-blue-800 hover:bg-blue-700 text-white'} rounded-md`;
-                    cell.textContent = cellData.played ? '' : `$${cellData.points}`;
+            // Add Question Rows (Points)
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < selectedSubtopics.length; col++) {
+                    const points = pointValues[row];
+                    const subtopic = selectedSubtopics[col];
+                    const cellId = `cell-${row}-${col}`;
                     
-                    if (!cellData.played) {
-                        cell.onclick = () => openQuestion(colIndex, rowIndex);
-                    }
-                    
-                    grid.appendChild(cell);
+                    const isPlayed = currentGameState[row][col] === 1;
+                    const cellClass = isPlayed 
+                        ? 'played' 
+                        : 'bg-indigo-700 text-yellow-300 hover:bg-indigo-600 active:bg-indigo-800';
+                    const onclick = isPlayed 
+                        ? '' 
+                        : `onclick="openQuestion('${cellId}', ${col}, ${points}, '${subtopic.name}')"`;
+
+                    html += `
+                        <div id="${cellId}" class="board-cell rounded-md transition duration-150 ${cellClass}" ${onclick}>
+                            ${isPlayed ? '' : points}
+                        </div>
+                    `;
                 }
             }
-            // Set grid to 5 columns
-            grid.style.gridTemplateColumns = `repeat(5, 1fr)`;
+            gameGrid.innerHTML = html;
         }
 
-        function openQuestion(col, row) {
-            gameState.currentQuestion = { col, row };
-            const qData = gameState.board[col][row];
-
-            if (qData.played) return; // Prevent playing a question twice
-
-            document.getElementById('questionPoints').textContent = `$${qData.points}`;
-            document.getElementById('questionText').textContent = qData.question;
+        function setTurn(team) {
+            currentTurn = team;
+            const teamColor = team === 'red' ? 'red-500' : 'blue-500';
+            const teamName = team === 'red' ? 'Red Team' : 'Blue Team';
             
-            // Prepare buttons
-            document.getElementById('correctPoints').textContent = `+${qData.points}`;
-            document.getElementById('incorrectPoints').textContent = `-${qData.points}`;
-            document.getElementById('correctAnswer').textContent = qData.answer;
+            const redTeamName = teams.red[Math.floor(Math.random() * teams.red.length)];
+            const blueTeamName = teams.blue[Math.floor(Math.random() * teams.blue.length)];
+            const activePlayer = team === 'red' ? redTeamName : blueTeamName;
             
-            // Hide close button and show score buttons initially
-            document.getElementById('closeButton').style.display = 'none';
-            document.querySelector('#questionModal .flex-wrap').style.display = 'flex'; 
+            const display = document.getElementById('activeTurnDisplay');
+            display.innerHTML = `<span class="text-${teamColor}">${teamName}</span>'s Turn: <span class="font-bold">${activePlayer}</span>`;
+            display.classList.remove('border-red-500', 'border-blue-500');
+            display.classList.add(`border-${teamColor}`);
+        }
+
+        function switchTurn() {
+            currentTurn = currentTurn === 'red' ? 'blue' : 'red';
+            setTurn(currentTurn);
+        }
+
+        // --- Question and Modal Functions ---
+
+        function generateQuestion(colIndex, points) {
+            // Get the topic name and base difficulty
+            const subtopicName = selectedSubtopics[colIndex].name;
+            const difficultyLevel = points / 100; // 1 to 5
+
+            let questionText = '';
+            let answerText = '';
+
+            // This structure uses a combination of topic and difficulty to generate specific math problems
+            // Ensure all math content uses KaTeX (e.g., $...$) for proper rendering, and use \times for multiplication.
+            
+            switch (subtopicName) {
+                case 'Solving one-step equations':
+                    if (difficultyLevel === 1) {
+                        questionText = 'Solve for $x$: $x + 15 = 27$.';
+                        answerText = '$x = 12$';
+                    } else if (difficultyLevel === 2) {
+                        questionText = 'Solve for $y$: $9y = 72$.';
+                        answerText = '$y = 8$';
+                    } else if (difficultyLevel === 3) {
+                        questionText = 'Solve for $z$: $\\frac{z}{4} = 16$.';
+                        answerText = '$z = 64$';
+                    } else if (difficultyLevel === 4) {
+                        questionText = 'Solve for $x$: $x - (-5) = 12$.';
+                        answerText = '$x = 7$';
+                    } else {
+                        questionText = 'Solve for $k$: $k \\div 7 = 11$.';
+                        answerText = '$k = 77$';
+                    }
+                    break;
+                
+                case 'Area of triangles, parallelograms and trapezia':
+                    if (difficultyLevel <= 2) {
+                        questionText = 'Calculate the area of a triangle with a base of $8$ cm and a height of $5$ cm.';
+                        answerText = '$20 \\text{ cm}^2$';
+                    } else if (difficultyLevel <= 4) {
+                        questionText = 'A parallelogram has an area of $54$ m$^2$. If the base is $9$ m, what is its height, $h$?';
+                        answerText = '$h = 6 \\text{ m}$';
+                    } else {
+                        questionText = 'What is the area of a trapezium with parallel sides $a=4$ cm and $b=6$ cm, and height $h=3$ cm?';
+                        answerText = '$15 \\text{ cm}^2$';
+                    }
+                    break;
+
+                case 'Using indices':
+                    if (difficultyLevel <= 2) {
+                        questionText = 'Calculate: $3^3 + 2^4$.';
+                        answerText = '$43$';
+                    } else if (difficultyLevel <= 4) {
+                        questionText = 'Simplify: $y^5 \\times y^3$.';
+                        answerText = '$y^8$';
+                    } else {
+                        questionText = 'Simplify: $\\frac{k^{10}}{k^2}$.';
+                        answerText = '$k^8$';
+                    }
+                    break;
+
+                case 'Compound interest':
+                    questionText = 'A principal of $1000$ is invested at $5\%$ annual interest, compounded annually. What is the amount after $2$ years?';
+                    answerText = '$1102.50$';
+                    break;
+
+                case 'Ratios':
+                    questionText = 'Simplify the ratio $15:25$.';
+                    answerText = '$3:5$';
+                    break;
+                
+                case 'More complex equations':
+                    questionText = 'Solve for $x$: $3x - 7 = x + 5$.';
+                    answerText = '$x = 6$';
+                    break;
+
+                case 'Area of compound shapes':
+                    questionText = 'A shape is made of a $5 \\text{m} \\times 4 \\text{m}$ rectangle and a $4 \\text{m} \\times 3 \\text{m}$ rectangle. What is the total area?';
+                    answerText = '$32 \\text{ m}^2$';
+                    break;
+                
+                default:
+                    // Generic default question to ensure the game doesn't break
+                    const equation = difficultyLevel > 3 ? `$\\frac{${points}}{5} \\times 2$`: `$ ${points} \\div 100 \\times 5$`;
+                    questionText = `What is the value of the expression ${equation}? (Topic: ${subtopicName})`;
+                    answerText = `${points / 25}`;
+                    break;
+            }
+
+            return { question: questionText, answer: answerText };
+        }
+
+        function openQuestion(cellId, colIndex, points, topicName) {
+            if (document.getElementById(cellId).classList.contains('played')) return;
+
+            const { question, answer } = generateQuestion(colIndex, points);
+
+            activeQuestion = {
+                points,
+                cellId,
+                team: currentTurn
+            };
+
+            document.getElementById('questionPoints').textContent = `${topicName} for ${points}`;
+            document.getElementById('questionText').textContent = question;
+            document.getElementById('correctAnswer').textContent = answer;
+            
+            // Hide answer/close button until after team selection/answer phase
             document.getElementById('correctAnswer').classList.add('hidden');
-            
-            // Render math inside the modal
-            setTimeout(() => renderMathInElement(document.getElementById('questionModal')), 0);
+            document.getElementById('closeButton').style.display = 'none';
+            document.getElementById('correctPoints').textContent = `+${points}`;
+            document.getElementById('incorrectPoints').textContent = `-${points}`;
 
             document.getElementById('questionModal').classList.remove('hidden');
+
+            // Render math inside the modal once it's visible
+            renderMathInElement(document.getElementById('questionText'));
+            renderMathInElement(document.getElementById('correctAnswer'));
+        }
+
+        function checkAnswer(isCorrect) {
+            if (!activeQuestion) return;
+
+            const { points, cellId, team } = activeQuestion;
+
+            // Update Score
+            if (isCorrect) {
+                if (team === 'red') {
+                    redScore += points;
+                } else {
+                    blueScore += points;
+                }
+            } else {
+                // If incorrect, the team loses points and the question remains open for the other team (optional rule)
+                // For simplicity, we'll mark it as played and deduct points on an incorrect guess.
+                if (team === 'red') {
+                    redScore -= points;
+                } else {
+                    blueScore -= points;
+                }
+            }
+            
+            // Mark cell as played
+            const [_, row, col] = cellId.split('-');
+            currentGameState[parseInt(row)][parseInt(col)] = 1;
+
+            // Update UI scores
+            document.getElementById('redScore').textContent = redScore;
+            document.getElementById('blueScore').textContent = blueScore;
+
+            // Show the correct answer and force review before closing
+            document.getElementById('correctAnswer').classList.remove('hidden');
+            document.getElementById('closeButton').style.display = 'inline-block';
+
+            // Disable all point/answer buttons
+            const answerArea = document.getElementById('questionModal').querySelector('.flex-wrap');
+            answerArea.querySelectorAll('button:not(#closeButton)').forEach(btn => btn.disabled = true);
+            
+            // Re-render board to show cell as played
+            renderGameBoard();
+
+            // Switch turn if correct, or leave for other team if using more complex rules.
+            // For now, switch turn after question is resolved.
+            switchTurn();
         }
 
         function closeQuestion() {
             document.getElementById('questionModal').classList.add('hidden');
-            gameState.currentQuestion = null;
-        }
-
-        function checkAnswer(isCorrect) {
-            const { col, row } = gameState.currentQuestion;
-            const qData = gameState.board[col][row];
+            activeQuestion = null;
             
-            // 1. Update Score
-            const points = qData.points;
-            if (isCorrect) {
-                if (gameState.currentTurn === 'red') {
-                    gameState.redScore += points;
-                } else {
-                    gameState.blueScore += points;
-                }
-            } else {
-                if (gameState.currentTurn === 'red') {
-                    gameState.redScore -= points;
-                } else {
-                    gameState.blueScore -= points;
-                }
-            }
-            
-            // 2. Mark as Played and Update Board
-            qData.played = true;
-            gameState.board[col][row] = qData;
-            renderGameBoard(); // Re-render to show cell greyed out
-            
-            // 3. Switch Turn
-            gameState.currentTurn = gameState.currentTurn === 'red' ? 'blue' : 'red';
-            updateTurnDisplay();
-            
-            // 4. Update UI
-            updateScoreDisplay();
-            saveGameState();
-            
-            // 5. Show Answer and Close Button (Teacher mode)
-            document.getElementById('correctAnswer').classList.remove('hidden');
-            document.querySelector('#questionModal .flex-wrap').style.display = 'none'; // Hide score buttons
-            document.getElementById('closeButton').style.display = 'inline-block';
-        }
-
-        // --- Score and Turn Display ---
-
-        function updateScoreDisplay() {
-            document.getElementById('redScore').textContent = gameState.redScore;
-            document.getElementById('blueScore').textContent = gameState.blueScore;
-        }
-
-        function updateTurnDisplay() {
-            const display = document.getElementById('activeTurnDisplay');
-            const teamName = gameState.currentTurn === 'red' ? 'Red Team' : 'Blue Team';
-            const teamColor = gameState.currentTurn === 'red' ? 'red' : 'blue';
-            const roster = teams[gameState.currentTurn];
-            const player = roster[Math.floor(Math.random() * roster.length)];
-            
-            display.innerHTML = `<span class="font-extrabold text-${teamColor}-400">${teamName}'s Turn:</span> <span class="text-white">${player}</span> to choose!`;
-            display.style.borderColor = teamColor === 'red' ? '#f87171' : '#60a5fa';
+            // Re-enable answer buttons for next question
+            const answerArea = document.getElementById('questionModal').querySelector('.flex-wrap');
+            answerArea.querySelectorAll('button').forEach(btn => btn.disabled = false);
         }
         
-        // --- Manual Score Control ---
+        // --- Score Control Functions ---
 
         function openScoreControl() {
-            document.getElementById('scoreControlModal').classList.remove('hidden');
-            // Reset inputs to zero every time it opens
             document.getElementById('redPointInput').value = 0;
             document.getElementById('bluePointInput').value = 0;
+            document.getElementById('scoreControlModal').classList.remove('hidden');
         }
 
         function closeScoreControl() {
@@ -787,20 +664,45 @@
         }
 
         function applyScoreChanges() {
-            const redChange = parseInt(document.getElementById('redPointInput').value) || 0;
-            const blueChange = parseInt(document.getElementById('bluePointInput').value) || 0;
+            const redChange = parseInt(document.getElementById('redPointInput').value || 0);
+            const blueChange = parseInt(document.getElementById('bluePointInput').value || 0);
 
-            gameState.redScore += redChange;
-            gameState.blueScore += blueChange;
+            redScore += redChange;
+            blueScore += blueChange;
 
-            updateScoreDisplay();
-            saveGameState();
+            document.getElementById('redScore').textContent = redScore;
+            document.getElementById('blueScore').textContent = blueScore;
+            
             closeScoreControl();
         }
 
+        function endGame() {
+            // Reset state
+            selectedSubtopics = [];
+            currentGameState = [];
+            redScore = 0;
+            blueScore = 0;
+            currentTurn = 'red';
 
-        // Initialize the app on load
-        window.onload = initializeGame;
+            // Switch screens
+            document.getElementById('gameBoardScreen').classList.add('hidden');
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('startButton').textContent = 'Select at least 1 topic to start';
+            
+            // Re-render topic selection
+            renderTopicSelection();
+        }
+
+
+        // --- Initialization ---
+
+        window.onload = function() {
+            renderTopicSelection();
+            // Initial render of lucide icons for the first screen
+            lucide.createIcons();
+        };
+
     </script>
 </body>
 </html>
